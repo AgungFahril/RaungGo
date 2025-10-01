@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOP Pendaki - Tahura Raden Soerjo</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <a href="index.html" class="nav-brand">Tahura Raden Soerjo</a>
+            <ul class="nav-menu">
+                <li><a href="index.html">Beranda</a></li>
+                <li><a href="#">Panduan Booking</a></li>
+                <li><a href="#">Panduan Pembayaran</a></li>
+                <li><a href="#" class="login-btn">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="page-container">
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li class="active"><a href="#ketentuan"><i class="fas fa-file-alt"></i> Ketentuan umum</a></li>
+                <li><a href="#tarif"><i class="fas fa-dollar-sign"></i> Tarif</a></li>
+                <li><a href="#pelaksanaan"><i class="fas fa-calendar-check"></i> Pelaksanaan Pendakian</a></li>
+                <li><a href="#larangan"><i class="fas fa-ban"></i> Larangan</a></li>
+                <li><a href="#booking"><i class="fas fa-book-open"></i> Booking</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <section id="ketentuan" class="content-block">
+                <div class="content-header">
+                    <h2>Syarat dan Ketentuan</h2>
+                    <p>Cermati dan taati peraturan sesuai dengan SOP yang telah ditetapkan.</p>
+                </div>
+                <div class="content-body">
+                    <h3>Pendaftaran Pendakian</h3>
+                    <ul>
+                        <li>Pendaftaran SIMAKSI secara online hanya melalui website <strong>SIPENERANG</strong> atau aplikasi <strong>Tiket Pendakian</strong>.</li>
+                        <li>Booking dapat dilakukan untuk 30 hari kedepan sampai dengan maksimal H-2.</li>
+                        <li>Batas durasi pendakian yang diizinkan maksimal 3 (tiga) hari 2 (dua) malam.</li>
+                        <li>Jam pelayanan pos perizinan pendakian Gunung Arjuno pukul 08.00 - 17.00 WIB.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="tarif" class="content-block">
+                <div class="content-body">
+                    <h2>Tarif dan Pembayaran</h2>
+                    <p>Setiap pendaki di kawasan Tahura Raden Soerjo dikenakan tarif karcis masuk sesuai dengan ketentuan yang berlaku.</p>
+                    <ol>
+                        <li><strong>Tarif Pendakian Gunung Arjuno-Welirang dan Bukit Lincing</strong>
+                            <ul>
+                                <li>Pendaki WNI: Rp. 20.000,- / orang / hari</li>
+                                <li>Pendaki WNA: Rp. 200.000,- / orang / hari</li>
+                            </ul>
+                        </li>
+                        <li><strong>Asuransi (Pembayaran di Pos)</strong>
+                             <ul>
+                                <li>Gunung Arjuno-Welirang dan Bukit Lincing: Rp. 10.000,- / orang</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </section>
+            
+            <section id="pelaksanaan" class="content-block">
+                 <div class="content-body">
+                    <h2>Pelaksanaan Pendakian</h2>
+                    <h3>Persyaratan umum</h3>
+                    <ul>
+                        <li>Menunjukkan eSIMAKSI (Surat Izin Masuk Kawasan Konservasi) kepada petugas.</li>
+                        <li>Remaja usia 10-18 tahun harus menyertakan KTP/KTM/SIM/Paspor Izin orang tua/wali.</li>
+                        <li>Balita usia 0-5 tahun tidak diperkenankan melakukan kegiatan pendakian.</li>
+                    </ul>
+                 </div>
+            </section>
+
+            <section id="larangan" class="content-block">
+                <div class="content-body">
+                    <h2>Larangan</h2>
+                    <p>Dalam rangka mempertahankan nilai penting keanekaragaman hayati & ekosistem, maka selama kegiatan pendakian di wilayah Arjuno Welirang, pendaki WAJIB memperhatikan:</p>
+                    <ul>
+                        <li>DILARANG MEMAKAI SANDAL GUNUNG</li>
+                        <li>Dilarang membawa atau menggunakan Drone selama berada di kawasan Gunung Arjuno Welirang.</li>
+                        <li>Dilarang membawa dan/atau menggunakan pengeras suara/sound speaker.</li>
+                        <li>Dilarang membuat api unggun.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="booking" class="content-block">
+                <div class="content-body">
+                    <h2>Booking</h2>
+                    <p>Ini adalah bagian checklist akhir sebelum melakukan pendaftaran.</p>
+                    <form class="checklist-form">
+                        <div class="form-buttons">
+                            <button type="submit" class="btn btn-primary">REGISTER</button>
+                            <button type="button" class="btn btn-secondary-solid">LOGIN</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.sidebar-nav li a');
+        const sidebarItems = document.querySelectorAll('.sidebar-nav li');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Hapus kelas active dari semua item menu
+                    sidebarItems.forEach(item => item.classList.remove('active'));
+                    
+                    // Tambahkan kelas active ke item menu yang sesuai
+                    const id = entry.target.getAttribute('id');
+                    const activeLink = document.querySelector(`.sidebar-nav li a[href="#${id}"]`);
+                    if (activeLink) {
+                        activeLink.parentElement.classList.add('active');
+                    }
+                }
+            });
+        }, {
+            rootMargin: '-50% 0px -50% 0px' // Memicu tepat di tengah layar
+        });
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
