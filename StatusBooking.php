@@ -8,8 +8,8 @@ session_start();
 
 // Redirect ke halaman login jika pengguna belum login
 if (!isset($_SESSION['user_id'])) {
-    //header('Location: login.php'); // Arahkan ke login.php
-    //exit();
+    header('Location: login.php'); // Arahkan ke login.php
+    exit();
 }
 
 // Ambil ID pengguna dari session (akan digunakan nanti untuk query database)

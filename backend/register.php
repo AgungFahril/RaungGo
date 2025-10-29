@@ -1,27 +1,50 @@
 <?php
 include 'koneksi.php';
+session_start();
 
 if (isset($_POST['register'])) {
-    $nama = $_POST['nama'];
-    $email = $_POST['email'];
+    $nama = trim($_POST['nama']);
+    $email = trim($_POST['email']);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $no_hp = $_POST['no_hp'];
+    $no_hp = trim($_POST['no_hp']);
 
-    // Cek apakah email sudah ada
-    $check = $conn->query("SELECT * FROM users WHERE email = '$email'");
-    if ($check && $check->num_rows > 0) {
-        echo "<script>alert('Email sudah terdaftar, silakan gunakan email lain.'); window.location='../register.php';</script>";
+    // Cek apakah email sudah terdaftar
+    $check = $conn->prepare("SELECT email FROM users WHERE email = ?");
+    $check->bind_param("s", $email);
+    $check->execute();
+    $check->store_result();
+
+    if ($check->num_rows > 0) {
+        $_SESSION['register_message'] = 'Email sudah terdaftar, silakan gunakan email lain.';
+        $_SESSION['register_message_type'] = 'error';
+        header('Location: ../register.php');
         exit;
     }
+    $check->close();
 
-    // Simpan data ke database
-    $sql = "INSERT INTO users (nama, email, password, no_hp, role)
-            VALUES ('$nama', '$email', '$password', '$no_hp', 'pendaki')";
-    
-    if ($conn->query($sql)) {
-        echo "<script>alert('Registrasi berhasil! Silakan login.'); window.location='../login.php';</script>";
+    // Masukkan data ke tabel users
+    $stmt = $conn->prepare("INSERT INTO users (nama, email, password, no_hp, role) VALUES (?, ?, ?, ?, 'pendaki')");
+    $stmt->bind_param("ssss", $nama, $email, $password, $no_hp);
+
+    if ($stmt->execute()) {
+        $user_id = $stmt->insert_id; // ambil ID user yang baru dibuat
+        $stmt->close();
+
+        // Tambahkan ke tabel pendaki
+        $stmt2 = $conn->prepare("INSERT INTO pendaki (user_id, nama, email, no_hp) VALUES (?, ?, ?, ?)");
+        $stmt2->bind_param("isss", $user_id, $nama, $email, $no_hp);
+        $stmt2->execute();
+        $stmt2->close();
+
+        $_SESSION['register_message'] = 'Registrasi berhasil! Silakan login.';
+        $_SESSION['register_message_type'] = 'success';
+        header('Location: ../login.php');
+        exit;
     } else {
-        echo "<script>alert('Gagal registrasi: " . addslashes($conn->error) . "'); window.location='../register.php';</script>";
+        $_SESSION['register_message'] = 'Gagal registrasi: ' . $conn->error;
+        $_SESSION['register_message_type'] = 'error';
+        header('Location: ../register.php');
+        exit;
     }
 } else {
     header("Location: ../register.php");

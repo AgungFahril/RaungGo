@@ -1,21 +1,25 @@
 <?php
-// Memulai sesi untuk bisa membaca $_SESSION
+// Memulai sesi
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Logika untuk menampilkan pesan error login
+// Tampilkan pesan error (jika ada)
 $error_message = '';
 if (isset($_SESSION['login_error'])) {
     $error_message = $_SESSION['login_error'];
-    unset($_SESSION['login_error']); // Hapus pesan setelah dibaca
+    unset($_SESSION['login_error']); // hapus pesan setelah ditampilkan
 }
 
-// Opsional: Cek jika sudah login, redirect ke halaman lain
-// if (isset($_SESSION['user_id'])) {
-//     header('Location: index.php'); // Atau ke dashboard pengunjung
-//     exit();
-// }
+// Jika user sudah login, arahkan ke halaman sesuai role
+if (isset($_SESSION['user_id'])) {
+    if ($_SESSION['role'] === 'admin') {
+        header('Location: admin/dashboard.php');
+    } else {
+        header('Location: pengunjung/dashboard.php');
+    }
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -27,14 +31,17 @@ if (isset($_SESSION['login_error'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body class="auth-page"> <div class="auth-container">
+<body class="auth-page">
+    <div class="auth-container">
         <div class="auth-form-section">
             <div class="auth-form-wrapper">
                 <a href="index.php" class="back-btn">
                     <i class="fa-solid fa-arrow-left"></i> Kembali
                 </a>
                 <h1 class="auth-title">Masuk Sekarang</h1>
-                <p class="auth-subtitle" style="margin-bottom: 1.5rem; color: #666;">Gunakan akun Anda untuk melanjutkan booking pendakian</p>
+                <p class="auth-subtitle" style="margin-bottom: 1.5rem; color: #666;">
+                    Gunakan akun Anda untuk melanjutkan booking pendakian
+                </p>
 
                 <?php if (!empty($error_message)): ?>
                     <p style="color: red; margin-bottom: 1rem; text-align: center; background-color: #ffebee; padding: 10px; border-radius: 5px; border: 1px solid #e57373;">
@@ -42,7 +49,8 @@ if (isset($_SESSION['login_error'])) {
                     </p>
                 <?php endif; ?>
 
-                <form action="backend/login.php" method="POST" class="auth-form">
+                <!-- 🔹 Form login dengan dukungan redirect -->
+                <form action="backend/login.php?redirect=<?= isset($_GET['redirect']) ? urlencode($_GET['redirect']) : '' ?>" method="POST" class="auth-form">
                     <div class="input-group">
                         <label for="email">Email</label>
                         <input type="email" name="email" id="email" placeholder="Masukkan email Anda" required>
@@ -52,7 +60,8 @@ if (isset($_SESSION['login_error'])) {
                         <label for="password">Password</label>
                         <div class="password-wrapper">
                             <input type="password" name="password" id="password" placeholder="Masukkan password Anda" required>
-                            <i class="fa-solid fa-eye toggle-password" id="togglePassword"></i> </div>
+                            <i class="fa-solid fa-eye toggle-password" id="togglePassword"></i>
+                        </div>
                     </div>
 
                     <button type="submit" name="login" class="btn btn-primary">Masuk</button>
@@ -73,8 +82,7 @@ if (isset($_SESSION['login_error'])) {
             </div>
         </div>
 
-        <div class="auth-image-section">
-            </div>
+        <div class="auth-image-section"></div>
     </div>
 
     <script src="script.js"></script>

@@ -20,19 +20,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
     <!-- ✅ Navbar khusus admin -->
     <header>
-        <nav class="navbar">
-            <a href="dashboard.php" class="nav-brand">🌲 Admin - Tahura Raden Soerjo</a>
-            <ul class="nav-menu">
-                <li><a href="dashboard.php" class="active">Dashboard</a></li>
-                <li><a href="kelola_pendaki.php">Kelola Pendaki</a></li>
-                <li><a href="kelola_booking.php">Kelola Booking</a></li>
-                <li><a href="kelola_pembayaran.php">Kelola Pembayaran</a></li>
-                <li><a href="laporan.php">Laporan</a></li>
-                <li><a href="pengaturan.php">Pengaturan</a></li>
-                <li><a href="../backend/logout.php" class="login-btn">Logout</a></li>
-                <li><span class="user-name">👋 <?= htmlspecialchars($_SESSION['nama']); ?></span></li>
-            </ul>
-        </nav>
+<?php include '../includes/navbar_admin.php'; ?>
     </header>
 
     <!-- ✅ Tampilan hero seperti index -->
