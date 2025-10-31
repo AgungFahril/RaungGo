@@ -27,14 +27,7 @@ if (isset($_POST['register'])) {
     $stmt->bind_param("ssss", $nama, $email, $password, $no_hp);
 
     if ($stmt->execute()) {
-        $user_id = $stmt->insert_id; // ambil ID user yang baru dibuat
         $stmt->close();
-
-        // Tambahkan ke tabel pendaki
-        $stmt2 = $conn->prepare("INSERT INTO pendaki (user_id, nama, email, no_hp) VALUES (?, ?, ?, ?)");
-        $stmt2->bind_param("isss", $user_id, $nama, $email, $no_hp);
-        $stmt2->execute();
-        $stmt2->close();
 
         $_SESSION['register_message'] = 'Registrasi berhasil! Silakan login.';
         $_SESSION['register_message_type'] = 'success';

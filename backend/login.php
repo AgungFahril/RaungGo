@@ -29,17 +29,6 @@ if (isset($_POST['login'])) {
             $_SESSION['role'] = $data['role'];
             $_SESSION['email'] = $data['email'];
 
-            // Ambil id_pendaki (jika ada)
-            $qPendaki = $conn->prepare("SELECT id_pendaki FROM pendaki WHERE user_id = ?");
-            $qPendaki->bind_param("i", $data['user_id']);
-            $qPendaki->execute();
-            $rPendaki = $qPendaki->get_result();
-            if ($rPendaki->num_rows > 0) {
-                $rowPendaki = $rPendaki->fetch_assoc();
-                $_SESSION['id_pendaki'] = $rowPendaki['id_pendaki'];
-            }
-            $qPendaki->close();
-
             // 🔹 Arahkan sesuai role (untuk sekarang fokus ke pengunjung)
             if ($data['role'] === 'admin') {
                 // Admin login (nanti akan digunakan)
