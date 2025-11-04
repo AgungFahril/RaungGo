@@ -504,7 +504,7 @@ try {
                 <a href="pembayaran.php" class="nav-item">
                     💳 Pembayaran
                 </a>
-                <a href="sop.php" class="nav-item">
+                <a href="../sop.php" class="nav-item">
                     📋 SOP
                 </a>
                 <a href="../backend/logout.php" class="nav-item">
