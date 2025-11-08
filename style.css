@@ -1,3 +1,8 @@
+index
+
+
+
+
 /* Tambahkan ini di paling atas style.css */
 html {
     scroll-behavior: smooth;
@@ -754,4 +759,332 @@ body.auth-page {
     .content-header {
         margin: -1.5rem -1.5rem 1.5rem -1.5rem; /* Sesuaikan margin negatif */
     }
+}
+/* === STYLE UNTUK BAGIAN PETA JALUR (BARU) === */
+
+.map-feature-container {
+    display: flex;
+    flex-direction: row; /* Gambar di kiri, teks di kanan */
+    gap: 2rem;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: left;
+    align-items: flex-start;
+}
+
+/* Bagian Kiri: Wrapper Gambar */
+.map-image-wrapper {
+    flex-basis: 50%;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #eee;
+}
+
+.map-image-wrapper img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Bagian Kanan: Info Teks */
+.map-trails-info {
+    flex-basis: 50%;
+}
+
+.map-trails-info h3 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.map-trails-info > p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1.5rem;
+}
+
+.trail-desc {
+    margin-top: 1rem;
+}
+
+.trail-desc h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e74c3c;
+    margin-bottom: 0.25rem;
+}
+
+.trail-desc p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #666;
+}
+
+/* Style Tombol Download (Bisa disamakan dengan tombol lain) */
+.btn-download {
+    display: inline-block; /* Agar margin-top berfungsi */
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-download.primary {
+    background-color: #2c3e50; /* Warna biru tua/abu-abu */
+    color: #fff;
+    border: 1px solid #2c3e50;
+}
+.btn-download.primary:hover {
+    background-color: #34495e;
+    border-color: #34495e;
+}
+
+/* Aturan responsive untuk layar kecil */
+@media (max-width: 992px) {
+    .map-feature-container {
+        flex-direction: column; /* Tumpuk vertikal */
+    }
+    
+    .map-image-wrapper,
+    .map-trails-info {
+        flex-basis: 100%; /* Lebar penuh */
+    }
+}
+/* === STYLE UNTUK SUBJUDUL (BARU) === */
+.section-subtitle {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: #666;
+    margin-top: -1.5rem; /* Tarik ke atas di bawah H2 */
+    margin-bottom: 2rem;
+}
+
+/* === STYLE UNTUK PETA JALUR (BAGIAN 1) === */
+.map-feature-container {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: left;
+    align-items: flex-start;
+}
+
+/* Bagian Kiri: Wrapper Gambar */
+.map-image-wrapper {
+    flex-basis: 50%;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #eee;
+}
+
+.map-image-wrapper img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Bagian Kanan: Info Teks */
+.map-trails-info {
+    flex-basis: 50%;
+}
+
+.map-trails-info h3 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.map-trails-info > p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1.5rem;
+}
+
+.trail-desc {
+    margin-top: 1rem;
+}
+
+.trail-desc h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e74c3c;
+    margin-bottom: 0.25rem;
+}
+
+.trail-desc p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #666;
+}
+
+/* Style Tombol Download */
+.btn-download {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-download.primary {
+    background-color: #2c3e50;
+    color: #fff;
+    border: 1px solid #2c3e50;
+}
+.btn-download.primary:hover {
+    background-color: #34495e;
+    border-color: #34495e;
+}
+
+/* === STYLE UNTUK PETA INTERAKTIF (BAGIAN 2) === */
+.map-embed-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #eee;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+    height: 600px; 
+}
+
+.map-embed-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Aturan responsive untuk layar kecil */
+@media (max-width: 992px) {
+    .map-feature-container {
+        flex-direction: column; /* Tumpuk vertikal */
+    }
+    
+    .map-image-wrapper,
+    .map-trails-info {
+        flex-basis: 100%; /* Lebar penuh */
+    }
+}
+/* ================================================ */
+/* === STYLE UNTUK BAGIAN FAQ === */
+/* ================================================ */
+
+.faq-section .info-section h2 {
+    /* Menghilangkan margin H2 jika ada, karena kita pakai header kustom */
+    margin-bottom: 0; 
+}
+
+.faq-container {
+    max-width: 900px;
+    margin: 2rem auto; /* Beri jarak atas/bawah & tengahkan */
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow: hidden; /* Penting agar header-nya pas */
+}
+
+.faq-header {
+    background-color: #e74c3c; /* Warna merah */
+    color: white;
+    padding: 1.5rem 2rem;
+}
+
+.faq-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.faq-header p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.faq-list {
+    /* Kosong, hanya sebagai pembungkus */
+}
+
+.faq-item {
+    border-bottom: 1px solid #f0f0f0;
+}
+.faq-item:last-child {
+    border-bottom: none;
+}
+
+.faq-question {
+    /* Reset style tombol */
+    background: none;
+    border: none;
+    font-family: 'Poppins', sans-serif;
+    
+    /* Layout */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 1.5rem 2rem;
+    
+    /* Tampilan */
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.faq-question:hover {
+    background-color: #f9f9f9;
+}
+
+.faq-question i.fa-chevron-down {
+    font-size: 0.9rem;
+    color: #888;
+    transition: transform 0.3s ease;
+}
+
+.faq-answer {
+    /* Sembunyikan jawaban secara default */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    background-color: #f7f7f7;
+    color: #555;
+}
+
+.faq-answer p {
+    padding: 1.5rem 2rem; /* Atur padding atas/bawah nanti saat aktif */
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+/* Style saat item aktif (diklik) */
+
+.faq-item.active .faq-question i.fa-chevron-down {
+    transform: rotate(180deg);
+    color: #e74c3c;
+}
+
+.faq-item.active .faq-answer {
+    /* Mengatur max-height akan diatur oleh JS */
+    /* Padding untuk memberi ruang pada jawaban */
+    transition: max-height 0.3s ease-in, padding 0.3s ease-in;
 }
