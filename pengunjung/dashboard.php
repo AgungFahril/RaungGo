@@ -396,6 +396,28 @@ try {
             font-size: 15px;
         }
 
+        .home-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+            margin-top: 20px;
+            display: inline-flex;
+        }
+
+        .home-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+            background: linear-gradient(135deg, #c0392b, #a93226);
+        }
+
         /* Scrollbar Styling */
         ::-webkit-scrollbar {
             width: 10px;
@@ -496,16 +518,16 @@ try {
 
             <div class="sidebar-nav">
                 <a href="dashboard.php" class="nav-item">
-                    📊 Dashboard
+                    🏕️ Dashboard
+                </a>
+                <a href="edit_profil.php" class="nav-item">
+                    👤 Edit Profil
                 </a>
                 <a href="booking.php" class="nav-item">
                     📅 Booking
                 </a>
-                <a href="pembayaran.php" class="nav-item">
-                    💳 Pembayaran
-                </a>
-                <a href="sop.php" class="nav-item">
-                    📋 SOP
+                <a href="../pengunjung/dashboard.php?tab=transaksi" class="nav-item">
+                    📊 Transaksi
                 </a>
                 <a href="../backend/logout.php" class="nav-item">
                     🚪 Logout
@@ -565,6 +587,7 @@ try {
                     mengecek status pembayaran, dan melihat informasi SOP pendakian melalui menu di samping. 
                     Pastikan semua data Anda akurat untuk pengalaman booking yang lancar.
                 </p>
+                <a href="../index.php" class="home-button">🏠 Kembali ke Halaman Utama</a>
             </div>
         </div>
     </div>

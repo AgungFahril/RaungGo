@@ -19,22 +19,26 @@ session_start();
 </header>
 
 <main>
+    <!-- 🏔️ Hero Section -->
     <section class="hero">
         <div class="hero-content">
             <h1>Gunung Raung Bondowoso</h1>
             <p>Puncak Gunung Raung dikenal dengan nama Puncak Sejati yang berada di ketinggian 3.344 mdpl.</p>
             <div class="hero-buttons">
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="pengunjung/booking.php" class="btn btn-primary">BOOKING</a>
+                    <!-- ✅ Setelah login, arahkan ke SOP -->
+                    <a href="pengunjung/sop.php" class="btn btn-primary">BOOKING</a>
                     <a href="StatusBooking.php" class="btn btn-secondary">STATUS BOOKING</a>
-                <?php else: ?>          
-                    <a href="login.php" class="btn btn-primary">BOOKING</a>
-                    <a href="login.php" class="btn btn-secondary">STATUS BOOKING</a>
+                <?php else: ?>
+                    <!-- ❌ Jika belum login, arahkan ke login dan redirect ke SOP -->
+                    <a href="login.php?redirect=pengunjung/sop.php" class="btn btn-primary">BOOKING</a>
+                    <a href="login.php?redirect=StatusBooking.php" class="btn btn-secondary">STATUS BOOKING</a>
                 <?php endif; ?>
             </div>
         </div>
     </section>
 
+    <!-- 📊 Statistik Pendaki -->
     <section class="stats-section">
         <div class="stat-card">
             <p class="stat-number">20,484</p>
@@ -48,6 +52,7 @@ session_start();
         </div>
     </section>
 
+    <!-- 🔁 Alur Booking -->
     <section class="info-section">
         <h2>Alur Booking</h2>
         <div class="booking-steps">
@@ -57,23 +62,23 @@ session_start();
             </div>
             <div class="step">
                 <h3>2. SOP Pendakian</h3>
-                <p>Pahami dan taati SOP dan peraturan pendakian yang berlaku.</p>
+                <p>Pahami dan taati SOP serta peraturan pendakian yang berlaku sebelum melanjutkan ke tahap berikutnya.</p>
             </div>
             <div class="step">
                 <h3>3. Pilih Tujuan dan Jadwal</h3>
-                <p>Pilih tujuan Gunung Arjuno-Welirang atau Gunung Pundak serta tentukan tanggal.</p>
+                <p>Pilih gunung serta tentukan tanggal pendakian sesuai dengan kuota yang tersedia.</p>
             </div>
             <div class="step">
-                <h3>4. Mengisi Form</h3>
-                <p>Lengkapi semua kolom yang telah disediakan dan pastikan alamat Email dan nomor telepon sudah sesuai.</p>
+                <h3>4. Mengisi Form Data Diri</h3>
+                <p>Lengkapi semua kolom yang telah disediakan dan pastikan alamat email dan nomor telepon sudah benar.</p>
             </div>
             <div class="step">
                 <h3>5. Pembayaran</h3>
-                <p>Tagihan akan dikirimkan melalui email dan whatsapp. Batas waktu pembayaran yakni 6 jam.</p>
+                <p>Tagihan akan dikirimkan melalui email dan WhatsApp. Batas waktu pembayaran adalah 6 jam setelah pemesanan.</p>
             </div>
             <div class="step">
-                <h3>6. Klik Bayar</h3>
-                <p>Setelah melakukan pembayaran, pastikan untuk klik tombol SUDAH BAYAR yang terdapat di menu status booking.</p>
+                <h3>6. Konfirmasi Pembayaran</h3>
+                <p>Setelah membayar, klik tombol SUDAH BAYAR di halaman Status Booking untuk konfirmasi.</p>
             </div>
         </div>
     </section>
@@ -179,6 +184,7 @@ session_start();
 
         </div> </div> </section>
 
+    <!-- 🗺️ Peta Jalur Pendakian -->
     <section class="info-section">
         <h2>Peta Jalur Pendakian</h2>
         <h3 class="section-subtitle">Deskripsi jalur pendakian resmi Gunung Raung</h3>
@@ -222,7 +228,7 @@ session_start();
     </main>
 <script src="script.js"></script>
 <footer>
-    <p>&copy; 2025 Tahura Raden Soerjo. All Rights Reserved.</p>
+    <p>&copy; 2025 Gunung Raung. All Rights Reserved.</p>
 </footer>
 
 </body>

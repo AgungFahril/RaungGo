@@ -1,60 +1,70 @@
 <?php
 session_start();
 include 'koneksi.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Pastikan user sudah login
+// ✅ Pastikan sudah login
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../login.php");
-    exit();
+    echo "<script>alert('Silakan login terlebih dahulu sebelum melakukan booking.'); window.location='../login.php';</script>";
+    exit;
 }
 
-// Ambil data dari form
-$user_id         = $_SESSION['user_id'];
-$tanggal_naik    = $_POST['tanggal_naik'] ?? '';
-$tanggal_turun   = $_POST['tanggal_turun'] ?? '';
-$jumlah_pendaki  = $_POST['jumlah_pendaki'] ?? '';
-$telepon_ketua   = $_POST['telepon_ketua'] ?? '';
-$setuju_sop      = isset($_POST['setuju_sop']) ? 1 : 0;
+// ✅ Ambil data dari form
+$user_id        = $_SESSION['user_id'];
+$pendakian_id   = $_POST['pendakian_id'] ?? '';
+$jumlah_pendaki = $_POST['jumlah_pendaki'] ?? '';
+$nama_ketua     = $_POST['nama_ketua'] ?? '';
+$email_ketua    = $_POST['email_ketua'] ?? '';
+$telepon_ketua  = $_POST['telepon_ketua'] ?? '';
+$alamat_ketua   = $_POST['alamat_ketua'] ?? '';
+$no_identitas   = $_POST['no_identitas_ketua'] ?? '';
+$tanggal_pesan  = date('Y-m-d H:i:s');
+$status_pesanan = 'menunggu_pembayaran';
 
-// Validasi input dasar
-if (empty($tanggal_naik) || empty($tanggal_turun) || empty($jumlah_pendaki)) {
-    echo "<script>alert('Harap isi semua kolom wajib.'); history.back();</script>";
-    exit();
+// ✅ Validasi wajib
+if (empty($pendakian_id) || empty($jumlah_pendaki) || empty($nama_ketua) || empty($telepon_ketua) || empty($alamat_ketua) || empty($no_identitas)) {
+    echo "<script>alert('Harap lengkapi semua data booking.'); history.back();</script>";
+    exit;
 }
 
-// Validasi tanggal
-if ($tanggal_turun < $tanggal_naik) {
-    echo "<script>alert('Tanggal turun tidak boleh lebih awal dari tanggal naik!'); history.back();</script>";
-    exit();
-}
+// ✅ Ambil tarif tiket
+$q = $conn->prepare("SELECT j.tarif_tiket FROM pendakian p 
+                     JOIN jalur_pendakian j ON p.jalur_id = j.jalur_id 
+                     WHERE p.pendakian_id = ?");
+$q->bind_param("i", $pendakian_id);
+$q->execute();
+$res = $q->get_result();
+$tarif = $res->fetch_assoc()['tarif_tiket'] ?? 15000;
+$q->close();
 
-// ===============================================
-// LOGIKA TAMBAHAN (sementara karena belum ada kolom lengkap):
-// - pendakian_id sementara kita set default ke '1' (misal Gunung Raung)
-// - total_bayar dihitung sederhana, misal 50.000/orang
-// ===============================================
-$pendakian_id = 1;
-$total_bayar = $jumlah_pendaki * 50000; // contoh tarif 50rb/orang
-$status_pesanan = 'Pending';
-$tanggal_pesan = date('Y-m-d H:i:s');
+// ✅ Hitung total bayar
+$total_bayar = $tarif * $jumlah_pendaki;
 
-// Simpan ke tabel pesanan
-$query = "INSERT INTO pesanan (user_id, pendakian_id, tanggal_pesan, jumlah_pendaki, total_bayar, status_pesanan)
-          VALUES (?, ?, ?, ?, ?, ?)";
+// ✅ Buat kode token unik (8 karakter)
+$kode_token = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 8));
 
-$stmt = $conn->prepare($query);
-$stmt->bind_param("iisiis", $user_id, $pendakian_id, $tanggal_pesan, $jumlah_pendaki, $total_bayar, $status_pesanan);
+
+
+// ✅ Simpan ke tabel pesanan
+$stmt = $conn->prepare("INSERT INTO pesanan 
+    (user_id, pendakian_id, tanggal_pesan, jumlah_pendaki, total_bayar, status_pesanan, kode_token, nama_ketua, telepon_ketua, alamat_ketua, no_identitas)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("iisiissssss", $user_id, $pendakian_id, $tanggal_pesan, $jumlah_pendaki, $total_bayar, $status_pesanan, $kode_token, $nama_ketua, $telepon_ketua, $alamat_ketua, $no_identitas);
 
 if ($stmt->execute()) {
-    echo "<script>
-        alert('Booking berhasil dikirim! Silakan cek status di menu Status Booking.');
-        window.location.href = '../pengunjung/StatusBooking.php';
+    $pesanan_id = $stmt->insert_id;
+    echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Booking Berhasil!',
+            html: 'Kode Token Anda: <b>$kode_token</b><br><small>Simpan kode ini untuk cek status pembayaran.</small>',
+            confirmButtonColor: '#43a047'
+        }).then(() => window.location='../pengunjung/pembayaran.php?pesanan_id=$pesanan_id');
     </script>";
 } else {
-    echo "<script>
-        alert('Terjadi kesalahan saat menyimpan data: " . addslashes($conn->error) . "');
-        history.back();
-    </script>";
+    echo "<script>alert('Terjadi kesalahan: " . addslashes($conn->error) . "'); history.back();</script>";
 }
 
 $stmt->close();

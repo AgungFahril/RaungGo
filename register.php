@@ -63,11 +63,6 @@ if (isset($_SESSION['register_message'])) {
                             <i class="fa-solid fa-eye toggle-password" id="togglePassword"></i> </div>
                     </div>
 
-                    <div class="input-group">
-                        <label for="no_hp">Nomor HP</label>
-                        <input type="text" name="no_hp" id="no_hp" placeholder="Masukkan nomor HP Anda" required>
-                    </div>
-
                     <button type="submit" name="register" class="btn btn-primary">REGISTER</button>
                 </form>
 
