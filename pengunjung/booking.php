@@ -65,9 +65,9 @@ body {
     max-width: 900px;
     margin: 120px auto 60px auto;
     background: rgba(255,255,255,0.96);
-    border-radius: 12px;
+    border-radius: 15px;
     padding: 35px 45px;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 h2 {
     text-align: center;
@@ -77,16 +77,18 @@ h2 {
 }
 .info-card {
     background: #e8f5e9;
-    border-left: 5px solid #4caf50;
-    border-radius: 8px;
-    padding: 15px 20px;
+    border-left: 6px solid #43a047;
+    border-radius: 10px;
+    padding: 18px 22px;
     margin-bottom: 25px;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.05);
 }
 fieldset {
     border: 1px solid #c8e6c9;
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
+    background: #fafdf9;
 }
 legend {
     color: #2e7d32;
@@ -108,19 +110,42 @@ input[readonly], textarea[readonly] { background: #f7f7f7; }
     border-radius: 8px;
     padding: 15px;
     margin-top: 15px;
+    transition: 0.3s;
 }
+.anggota-group:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 .btn-submit {
     width: 100%;
     background: #43a047;
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 12px;
+    padding: 13px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+    transition: 0.3s;
 }
-.btn-submit:hover { background: #2e7d32; }
+.btn-submit:hover { background: #2e7d32; transform: translateY(-1px); }
+.btn-back {
+    display: inline-block;
+    background-color: #9e9e9e;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.btn-back:hover {
+    background-color: #616161;
+    transform: translateY(-1px);
+}
+.btn-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+}
 </style>
 </head>
 <body>
@@ -131,6 +156,11 @@ input[readonly], textarea[readonly] { background: #f7f7f7; }
 
 <main class="booking-wrapper">
     <h2>🧗 Form Booking Pendakian</h2>
+
+    <!-- Tombol kembali -->
+    <div style="margin-bottom: 20px;">
+        <a href="kuota.php" class="btn-back">⬅ Kembali ke Cek Kuota</a>
+    </div>
 
     <div class="info-card">
         <p><strong>Jalur:</strong> <?= htmlspecialchars($data_jalur['nama_jalur']); ?></p>
@@ -145,10 +175,10 @@ input[readonly], textarea[readonly] { background: #f7f7f7; }
            </span></p>
     </div>
 
-    <!-- Form booking mengarah ke backend/proses_booking.php -->
     <form method="POST" action="../backend/proses_booking.php">
         <input type="hidden" name="pendakian_id" value="<?= $id_pendakian; ?>">
         <input type="hidden" name="jumlah_pendaki" value="<?= $jumlah_pendaki; ?>">
+
         <fieldset>
             <legend>👤 Data Ketua Pendaki</legend>
             <label>Nama Ketua</label>
@@ -171,7 +201,9 @@ input[readonly], textarea[readonly] { background: #f7f7f7; }
         </fieldset>
         <?php endif; ?>
 
-        <button type="submit" name="submit_booking" class="btn-submit">Kirim Booking</button>
+        <div class="btn-row">
+            <button type="submit" name="submit_booking" class="btn-submit">Kirim Booking</button>
+        </div>
     </form>
 </main>
 
@@ -204,6 +236,8 @@ if (container && jumlahPendaki > 1) {
 }
 </script>
 
-<footer style="text-align:center; padding:25px; color:#555;">&copy; 2025 Tahura Raden Soerjo</footer>
+<footer style="text-align:center; padding:25px; color:#555;">
+    &copy; 2025 Tahura Raden Soerjo
+</footer>
 </body>
 </html>

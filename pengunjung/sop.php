@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setuju'])) {
 $nama_pengguna = htmlspecialchars($_SESSION['nama'] ?? 'Pendaki');
 ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="d">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

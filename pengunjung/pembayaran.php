@@ -1,84 +1,108 @@
 <?php
+// =============================================
+// 💳 PEMBAYARAN PENDAKIAN — FINAL TERINTEGRASI
+// =============================================
+date_default_timezone_set('Asia/Jakarta');
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 include '../backend/koneksi.php';
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
-// 🔒 Pastikan user login
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../login.php?redirect=pengunjung/pembayaran.php");
+// Ambil pesanan_id dari URL
+$pesanan_id = $_GET['pesanan_id'] ?? null;
+if (!$pesanan_id) {
+    echo "<script>alert('Pesanan tidak ditemukan!'); window.location='../StatusBooking.php';</script>";
     exit;
 }
 
-$user_id = $_SESSION['user_id'];
-
-// Ambil pesanan terakhir (atau berdasarkan pesanan_id di URL)
-$pesanan_id = $_GET['pesanan_id'] ?? null;
-
+// Ambil data pesanan
 $q = $conn->prepare("
-    SELECT ps.pesanan_id, ps.tanggal_pesan, ps.total_bayar, ps.status_pesanan, ps.kode_token,
-           jp.nama_jalur, p.tanggal_pendakian
+    SELECT ps.*, jp.nama_jalur, p.tanggal_pendakian
     FROM pesanan ps
     JOIN pendakian p ON ps.pendakian_id = p.pendakian_id
     JOIN jalur_pendakian jp ON p.jalur_id = jp.jalur_id
-    WHERE ps.user_id = ? AND ps.pesanan_id = ?
-    LIMIT 1
+    WHERE ps.pesanan_id = ?
 ");
-$q->bind_param("ii", $user_id, $pesanan_id);
+$q->bind_param("i", $pesanan_id);
 $q->execute();
-$result = $q->get_result();
-$pesanan = $result->fetch_assoc();
+$pesanan = $q->get_result()->fetch_assoc();
 $q->close();
 
 if (!$pesanan) {
-    echo "<script>alert('Pesanan tidak ditemukan.'); window.location='../StatusBooking.php';</script>";
+    echo "<script>alert('Data pesanan tidak ditemukan!'); window.location='../StatusBooking.php';</script>";
     exit;
 }
 
-// ✅ Proses upload bukti pembayaran
-if (isset($_POST['upload'])) {
-    $jumlah_bayar = floatval($_POST['jumlah_bayar']);
-    $tanggal_bayar = date('Y-m-d H:i:s');
-    $metode = 'transfer_bank';
-    $status_pembayaran = 'pending';
+// ✅ Jika status sudah menunggu konfirmasi atau selesai, langsung arahkan ke detail transaksi
+if (in_array($pesanan['status_pesanan'], ['menunggu_konfirmasi', 'lunas', 'batal'])) {
+    header("Location: detail_transaksi.php?pesanan_id={$pesanan_id}");
+    exit;
+}
 
-    if (!empty($_FILES['bukti_bayar']['name'])) {
+// ✅ PROSES UPLOAD PEMBAYARAN
+if (isset($_POST['upload'])) {
+    try {
+        $jumlah_bayar = floatval($_POST['jumlah_bayar']);
+        $tanggal_bayar = date('Y-m-d H:i:s');
+        $metode = 'transfer_bank';
+        $status_pembayaran = 'pending';
+
+        if (empty($_FILES['bukti_bayar']['name'])) {
+            throw new Exception("Silakan unggah file bukti pembayaran.");
+        }
+
         $target_dir = "../uploads/bukti/";
         if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
 
-        $ext = pathinfo($_FILES['bukti_bayar']['name'], PATHINFO_EXTENSION);
-        $filename = "bukti_" . $pesanan_id . "_" . time() . "." . strtolower($ext);
-        $target_file = $target_dir . $filename;
-
+        $ext = strtolower(pathinfo($_FILES['bukti_bayar']['name'], PATHINFO_EXTENSION));
         $allowed = ['jpg', 'jpeg', 'png', 'pdf'];
-        if (!in_array(strtolower($ext), $allowed)) {
-            echo "<script>alert('Format file tidak didukung.');</script>";
-            exit;
+        if (!in_array($ext, $allowed)) {
+            throw new Exception("Format file tidak didukung ($ext). Gunakan JPG, PNG, atau PDF.");
         }
 
-        move_uploaded_file($_FILES["bukti_bayar"]["tmp_name"], $target_file);
+        $filename = "bukti_" . $pesanan_id . "_" . time() . "." . $ext;
+        $target_file = $target_dir . $filename;
 
+        if (!move_uploaded_file($_FILES['bukti_bayar']['tmp_name'], $target_file)) {
+            throw new Exception("Gagal menyimpan file bukti pembayaran ke server.");
+        }
+
+        // Simpan ke tabel pembayaran
         $stmt = $conn->prepare("INSERT INTO pembayaran (pesanan_id, metode, jumlah_bayar, tanggal_bayar, bukti_bayar, status_pembayaran)
                                 VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("isssss", $pesanan_id, $metode, $jumlah_bayar, $tanggal_bayar, $filename, $status_pembayaran);
+        $stmt->bind_param("isdsss", $pesanan_id, $metode, $jumlah_bayar, $tanggal_bayar, $filename, $status_pembayaran);
         $stmt->execute();
         $stmt->close();
 
-        // Update status pesanan jadi menunggu_verifikasi
-        $conn->query("UPDATE pesanan SET status_pesanan='menunggu_verifikasi' WHERE pesanan_id=$pesanan_id");
+        // Update status pesanan
+        $conn->query("UPDATE pesanan SET status_pesanan='menunggu_konfirmasi' WHERE pesanan_id=$pesanan_id");
 
+        // Redirect ke halaman detail transaksi
         echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
         <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Bukti Pembayaran Dikirim!',
-                html: 'Admin akan memverifikasi pembayaran kamu.<br><br><b>Kode Token: {$pesanan['kode_token']}</b>',
-                confirmButtonColor: '#43a047'
-            }).then(() => window.location='detail_transaksi.php?pesanan_id=$pesanan_id');
+        Swal.fire({
+            icon: 'success',
+            title: 'Bukti Pembayaran Dikirim!',
+            html: 'Admin akan segera memverifikasi pembayaran kamu.',
+            confirmButtonColor: '#43a047'
+        }).then(() => {
+            window.location = 'detail_transaksi.php?pesanan_id=$pesanan_id';
+        });
         </script>";
         exit;
-    } else {
-        echo "<script>alert('Silakan unggah bukti pembayaran.');</script>";
+
+    } catch (Exception $e) {
+        echo "<script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            html: '".addslashes($e->getMessage())."',
+            confirmButtonColor: '#e53935'
+        });
+        </script>";
+        exit;
     }
 }
 ?>
@@ -89,6 +113,7 @@ if (isset($_POST['upload'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pembayaran Pendakian</title>
 <link rel="stylesheet" href="../style.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
 body {
     font-family: 'Poppins', sans-serif;
@@ -99,7 +124,7 @@ body {
 .container {
     width: 85%;
     margin: 110px auto;
-    background: rgba(255,255,255,0.96);
+    background: rgba(255,255,255,0.97);
     border-radius: 14px;
     padding: 30px 40px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
@@ -144,21 +169,21 @@ input, input[type=file] {
     <h2>💳 Pembayaran Pendakian</h2>
 
     <div class="rekening-box">
-        <p><strong>Kode Token Booking Anda:</strong></p>
-        <h3 style="color:#e91e63;"><?= htmlspecialchars($pesanan['kode_token']); ?></h3>
-        <small><em>Simpan kode ini untuk mengecek status di menu “Status Booking”.</em></small>
+        <p><strong>Kode Token Booking:</strong> <?= htmlspecialchars($pesanan['kode_token']); ?></p>
+        <p><strong>Nama Jalur:</strong> <?= htmlspecialchars($pesanan['nama_jalur']); ?></p>
+        <p><strong>Tanggal Pendakian:</strong> <?= htmlspecialchars($pesanan['tanggal_pendakian']); ?></p>
+        <p><strong>Total Bayar:</strong> Rp <?= number_format($pesanan['total_bayar'], 0, ',', '.'); ?></p>
     </div>
 
     <div class="rekening-box">
         <p>🏦 <b>Bank BRI</b></p>
-        <p>No. Rekening: <b>1234-5678-91011</b></p>
-        <p>Atas Nama: <b>Tahura Raden Soerjo</b></p>
-        <small><em>Pastikan nominal transfer sesuai total bayar.</em></small>
+        <p>No. Rekening: <b>653101005713502</b></p>
+        <p>Atas Nama: <b>Agung Fahril Gunawan</b></p>
     </div>
 
     <form method="POST" enctype="multipart/form-data">
         <label>Jumlah Bayar (Rp)</label>
-        <input type="number" name="jumlah_bayar" required>
+        <input type="number" name="jumlah_bayar" value="<?= htmlspecialchars($pesanan['total_bayar']); ?>" required>
 
         <label>Upload Bukti Pembayaran</label>
         <input type="file" name="bukti_bayar" accept=".jpg,.jpeg,.png,.pdf" required>

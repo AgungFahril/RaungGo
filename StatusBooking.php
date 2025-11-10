@@ -1,77 +1,130 @@
 <?php
-// Pengaturan error reporting (opsional, bagus untuk development)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
+include 'backend/koneksi.php';
 
-// Redirect ke halaman login jika pengguna belum login
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php'); // Arahkan ke login.php
-    exit();
+$bookings = [];
+if (isset($_POST['cek_token'])) {
+    $kode_token = strtoupper(trim($_POST['kode_token']));
+
+    $sql = "
+        SELECT 
+            ps.kode_token, ps.pesanan_id, ps.status_pesanan, ps.total_bayar, 
+            ps.tanggal_pesan, ps.jumlah_pendaki,
+            p.tanggal_pendakian, p.tanggal_turun, 
+            jp.nama_jalur
+        FROM pesanan ps
+        JOIN pendakian p ON ps.pendakian_id = p.pendakian_id
+        JOIN jalur_pendakian jp ON p.jalur_id = jp.jalur_id
+        WHERE ps.kode_token = ?
+        ORDER BY ps.pesanan_id DESC
+    ";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $kode_token);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $bookings = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
 }
-
-// Ambil ID pengguna dari session (akan digunakan nanti untuk query database)
-$user_id = $_SESSION['user_id'];
-
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status Booking - Tahura Raden Soerjo</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .status-table-container {
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 2.5rem;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-        .status-table-container h2 {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: #2c3e50;
-        }
-        .status-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1.5rem;
-        }
-        .status-table th, .status-table td {
-            border: 1px solid #ddd;
-            padding: 0.8rem 1rem;
-            text-align: left;
-            font-size: 0.95rem;
-        }
-        .status-table th {
-            background-color: #f8f8f8;
-            font-weight: 600;
-        }
-        .status-badge {
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #fff;
-        }
-        .status-pending { background-color: #f39c12; } /* Oranye */
-        .status-approved { background-color: #2ecc71; } /* Hijau */
-        .status-rejected { background-color: #e74c3c; } /* Merah */
-        .status-completed { background-color: #3498db; } /* Biru */
-        .no-booking {
-            text-align: center;
-            color: #777;
-            margin-top: 2rem;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Status Booking - Tahura Raden Soerjo</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #f5faf5 url('images/Gunung_Raung.jpg') no-repeat center top;
+    background-size: cover;
+}
+.status-table-container {
+    max-width: 900px;
+    margin: 140px auto;
+    padding: 2.5rem;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+.status-table-container h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #2e7d32;
+}
+form {
+    text-align: center;
+    margin-bottom: 25px;
+}
+input[type="text"] {
+    padding: 10px;
+    width: 60%;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+button {
+    background: #43a047;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-weight: 600;
+}
+button:hover { background: #2e7d32; }
+
+.status-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+}
+.status-table th, .status-table td {
+    border: 1px solid #ddd;
+    padding: 0.8rem 1rem;
+    text-align: left;
+    font-size: 0.95rem;
+}
+.status-table th {
+    background-color: #f8f8f8;
+    font-weight: 600;
+}
+.status-badge {
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #fff;
+}
+.status-menunggu_pembayaran { background-color: #f39c12; } 
+.status-menunggu_konfirmasi { background-color: #3498db; }
+.status-berhasil, .status-lunas { background-color: #2ecc71; } 
+.status-gagal, .status-ditolak, .status-batal { background-color: #e74c3c; } 
+.no-booking {
+    text-align: center;
+    color: #777;
+    margin-top: 2rem;
+}
+.btn-aksi {
+    display: inline-block;
+    background: #43a047;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+}
+.btn-aksi:hover { background: #2e7d32; }
+.btn-bayar {
+    background: #e91e63;
+}
+.btn-bayar:hover { background: #ad1457; }
+</style>
 </head>
 <body>
 
@@ -80,101 +133,73 @@ $user_id = $_SESSION['user_id'];
 </header>
 
 <main class="content-page">
-    <div class="page-header">
-        <h1>Status Booking Pendakian</h1>
-    </div>
+<div class="status-table-container">
+    <h2>🔍 Cek Status Booking</h2>
 
-    <div class="status-table-container">
-        <h2>Riwayat Booking Anda</h2>
+    <form method="POST">
+        <input type="text" name="kode_token" placeholder="Masukkan Kode Token Booking" maxlength="10" required>
+        <button type="submit" name="cek_token">Cek Status</button>
+    </form>
 
-        <?php
-        // --- TEMPAT QUERY DATABASE NANTI ---
-        // Di sini nanti kamu akan query database untuk mengambil data booking
-        // berdasarkan $user_id. Contoh:
-        // $sql = "SELECT * FROM bookings WHERE user_id = ? ORDER BY tanggal_booking DESC";
-        // $stmt = $koneksi->prepare($sql);
-        // $stmt->bind_param("i", $user_id);
-        // $stmt->execute();
-        // $result = $stmt->get_result();
+    <?php if (isset($_POST['cek_token']) && empty($bookings)): ?>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Kode Token Tidak Ditemukan!',
+                text: 'Silakan periksa kembali kode token kamu.',
+                confirmButtonColor: '#e53935'
+            });
+        </script>
+    <?php endif; ?>
 
-        // Untuk sekarang, kita buat data contoh
-        $bookings = [
-            [
-                'id' => 'BK001', 
-                'tanggal_naik' => '2025-11-15', 
-                'tanggal_turun' => '2025-11-17', 
-                'jumlah_pendaki' => 4, 
-                'status' => 'approved', // approved, pending, rejected, completed
-                'tanggal_booking' => '2025-10-28 10:00:00'
-            ],
-            [
-                'id' => 'BK002', 
-                'tanggal_naik' => '2025-12-01', 
-                'tanggal_turun' => '2025-12-03', 
-                'jumlah_pendaki' => 3, 
-                'status' => 'pending',
-                'tanggal_booking' => '2025-10-29 11:30:00'
-            ]
-        ]; // Anggap ini hasil dari database
-
-        if (count($bookings) > 0): // Ganti ini dengan: if ($result->num_rows > 0): 
-        ?>
-            <table class="status-table">
-                <thead>
-                    <tr>
-                        <th>ID Booking</th>
-                        <th>Tgl Naik</th>
-                        <th>Tgl Turun</th>
-                        <th>Jumlah</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    // Ganti ini dengan: while($row = $result->fetch_assoc()):
-                    foreach ($bookings as $row): 
-                        $status_text = ucfirst($row['status']); // Jadi: Approved, Pending, dll.
-                        $status_class = '';
-                        switch ($row['status']) {
-                            case 'pending': $status_class = 'status-pending'; break;
-                            case 'approved': $status_class = 'status-approved'; break;
-                            case 'rejected': $status_class = 'status-rejected'; break;
-                            case 'completed': $status_class = 'status-completed'; break;
-                        }
-                    ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['id']); ?></td>
-                        <td><?= htmlspecialchars(date('d M Y', strtotime($row['tanggal_naik']))); ?></td>
-                        <td><?= htmlspecialchars(date('d M Y', strtotime($row['tanggal_turun']))); ?></td>
-                        <td><?= htmlspecialchars($row['jumlah_pendaki']); ?> org</td>
-                        <td><span class="status-badge <?= $status_class; ?>"><?= $status_text; ?></span></td>
-                        <td>
-                            <a href="detail_booking.php?id=<?= $row['id']; ?>" style="font-size: 0.9rem;">Detail</a>
-                            <?php if($row['status'] == 'pending'): ?>
-                                | <a href="pembayaran_booking.php?id=<?= $row['id']; ?>" style="font-size: 0.9rem;">Bayar</a>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <?php endforeach; // Ganti dengan: endwhile; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p class="no-booking">Anda belum memiliki riwayat booking.</p>
-        <?php endif; ?>
-        <?php 
-        // Jangan lupa tutup koneksi database nanti:
-        // $stmt->close();
-        // $koneksi->close(); 
-        ?>
-    </div>
+    <?php if (!empty($bookings)): ?>
+        <table class="status-table">
+            <thead>
+                <tr>
+                    <th>Kode Token</th>
+                    <th>Jalur</th>
+                    <th>Tanggal Naik</th>
+                    <th>Jumlah</th>
+                    <th>Total Bayar</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($bookings as $row): 
+                    $status_class = 'status-' . strtolower(str_replace(' ', '_', $row['status_pesanan']));
+                    $status_text = ucfirst(str_replace('_', ' ', $row['status_pesanan']));
+                ?>
+                <tr>
+                    <td><?= htmlspecialchars($row['kode_token']); ?></td>
+                    <td><?= htmlspecialchars($row['nama_jalur']); ?></td>
+                    <td><?= htmlspecialchars(date('d M Y', strtotime($row['tanggal_pendakian']))); ?></td>
+                    <td><?= htmlspecialchars($row['jumlah_pendaki']); ?> org</td>
+                    <td>Rp<?= number_format($row['total_bayar'], 0, ',', '.'); ?></td>
+                    <td><span class="status-badge <?= $status_class; ?>"><?= $status_text; ?></span></td>
+                    <td>
+                        <?php 
+                        // Tombol aksi sesuai status
+                        if ($row['status_pesanan'] === 'menunggu_pembayaran'): ?>
+                            <a href="pengunjung/pembayaran.php?pesanan_id=<?= $row['pesanan_id']; ?>" class="btn-aksi btn-bayar">Bayar</a>
+                            <a href="pengunjung/detail_transaksi.php?pesanan_id=<?= $row['pesanan_id']; ?>" class="btn-aksi">Detail</a>
+                        <?php else: ?>
+                            <a href="pengunjung/detail_transaksi.php?pesanan_id=<?= $row['pesanan_id']; ?>" class="btn-aksi">Lihat Detail</a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php elseif (!isset($_POST['cek_token'])): ?>
+        <p class="no-booking">Masukkan kode token booking untuk melihat status pendakian kamu.</p>
+    <?php endif; ?>
+</div>
 </main>
 
-<footer>
-    <p>&copy; 2025 Tahura Raden Soerjo. All Rights Reserved.</p>
+<footer style="text-align:center; padding:20px; color:#555;">
+    &copy; 2025 Tahura Raden Soerjo
 </footer>
-
-<script src="script.js"></script> 
 
 </body>
 </html>

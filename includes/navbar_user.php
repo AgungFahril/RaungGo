@@ -15,7 +15,7 @@ $harusLengkapiData = false;
 $pesan = "";
 
 // ✅ Jika user login, cek apakah sudah melengkapi data diri
-if (isset($_SESSION['user_id'])) {
+if (!empty($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
 
     $cekData = $conn->prepare("SELECT pendaki_id FROM pendaki_detail WHERE user_id = ?");
@@ -24,80 +24,57 @@ if (isset($_SESSION['user_id'])) {
     $cekData->store_result();
 
     if ($cekData->num_rows === 0) {
-        // Belum melengkapi data diri
         $harusLengkapiData = true;
     } else {
-        // Sudah lengkap
         $pesan = "Data diri kamu sudah lengkap! Silakan lanjut membaca SOP pendakian.";
     }
 
     $cekData->close();
 }
+
+// ✅ Nilai default jika session belum ada
+$role = $_SESSION['role'] ?? 'pengunjung';
+$namaUser = $_SESSION['nama'] ?? 'Pendaki';
 ?>
 
-<nav class="navbar">
-    <a href="<?= $basePath ?>index.php" class="nav-brand">Tahura Raden Soerjo</a>
-    <ul class="nav-menu">
-        <li <?= ($currentPage === 'index.php') ? 'class="active"' : '' ?>>
-            <a href="<?= $basePath ?>index.php">Beranda</a>
-        </li>
-
-        <li <?= ($currentPage === 'sop.php') ? 'class="active"' : '' ?>>
-            <a href="<?= $basePath ?>pengunjung/sop.php">SOP Pendaki</a>
-        </li>
-
-        <li <?= ($currentPage === 'PanduanBooking.php') ? 'class="active"' : '' ?>>
-            <a href="<?= $basePath ?>PanduanBooking.php">Panduan Booking</a>
-        </li>
-
-        <li <?= ($currentPage === 'PanduanPembayaran.php') ? 'class="active"' : '' ?>>
-            <a href="<?= $basePath ?>PanduanPembayaran.php">Panduan Pembayaran</a>
-        </li>
-
-        <li <?= ($currentPage === 'StatusBooking.php') ? 'class="active"' : '' ?>>
-            <a href="<?= $basePath ?>StatusBooking.php">Status Booking</a>
-        </li>
+<nav class="navbar" style="background:#2e7d32;padding:10px 20px;color:white;">
+    <a href="<?= $basePath ?>index.php" class="nav-brand" style="font-weight:700;color:white;text-decoration:none;">Tahura Raden Soerjo</a>
+    <ul class="nav-menu" style="list-style:none;display:flex;gap:15px;margin:0;padding:0;align-items:center;">
+        <li><a href="<?= $basePath ?>index.php" style="color:white;text-decoration:none;">Beranda</a></li>
+        <li><a href="<?= $basePath ?>pengunjung/sop.php" style="color:white;text-decoration:none;">SOP Pendaki</a></li>
+        <li><a href="<?= $basePath ?>PanduanBooking.php" style="color:white;text-decoration:none;">Panduan Booking</a></li>
+        <li><a href="<?= $basePath ?>PanduanPembayaran.php" style="color:white;text-decoration:none;">Panduan Pembayaran</a></li>
+        <li><a href="<?= $basePath ?>StatusBooking.php" style="color:white;text-decoration:none;">Status Booking</a></li>
 
         <!-- 🔘 Tombol Booking -->
-        <li <?= in_array($currentPage, ['kuota.php', 'booking.php']) ? 'class="active"' : '' ?>>
-            <?php if (!isset($_SESSION['user_id'])): ?>
-                <!-- Belum login -->
-                <a href="<?= $basePath ?>login.php?redirect=pengunjung/lengkapi_data.php">Booking</a>
-
+        <li>
+            <?php if (empty($_SESSION['user_id'])): ?>
+                <a href="<?= $basePath ?>login.php?redirect=pengunjung/lengkapi_data.php" style="color:#fff;background:#43a047;padding:6px 12px;border-radius:6px;text-decoration:none;">Booking</a>
             <?php elseif ($harusLengkapiData): ?>
-                <!-- Sudah login tapi belum melengkapi data diri -->
-                <a href="<?= $basePath ?>pengunjung/lengkapi_data.php"
-                   onclick="alert('Lengkapi data diri terlebih dahulu sebelum booking!')">Booking</a>
-
+                <a href="<?= $basePath ?>pengunjung/lengkapi_data.php" onclick="alert('Lengkapi data diri terlebih dahulu sebelum booking!')" style="color:#fff;background:#fbc02d;padding:6px 12px;border-radius:6px;text-decoration:none;">Lengkapi Data</a>
             <?php elseif (empty($_SESSION['setuju_sop']) || $_SESSION['setuju_sop'] !== true): ?>
-                <!-- Sudah lengkap data diri tapi belum setuju SOP -->
-                <a href="<?= $basePath ?>pengunjung/sop.php" id="booking-link">Booking</a>
-
+                <a href="<?= $basePath ?>pengunjung/sop.php" style="color:#fff;background:#1e88e5;padding:6px 12px;border-radius:6px;text-decoration:none;">Setujui SOP</a>
             <?php else: ?>
-                <!-- Sudah lengkap semuanya -->
-                <a href="<?= $basePath ?>pengunjung/kuota.php">Booking</a>
+                <a href="<?= $basePath ?>pengunjung/kuota.php" style="color:#fff;background:#43a047;padding:6px 12px;border-radius:6px;text-decoration:none;">Booking</a>
             <?php endif; ?>
         </li>
 
         <!-- 👤 Menu Login / Dashboard -->
-        <?php if (isset($_SESSION['user_id'])): ?>
-            <?php if ($_SESSION['role'] === 'admin'): ?>
-                <li><a href="<?= $basePath ?>admin/dashboard.php">Dashboard</a></li>
+        <?php if (!empty($_SESSION['user_id'])): ?>
+            <?php if ($role === 'admin'): ?>
+                <li><a href="<?= $basePath ?>admin/dashboard.php" style="color:white;text-decoration:none;">Dashboard</a></li>
             <?php else: ?>
-                <li><a href="<?= $basePath ?>pengunjung/dashboard.php">Dashboard</a></li>
+                <li><a href="<?= $basePath ?>pengunjung/dashboard.php" style="color:white;text-decoration:none;">Dashboard</a></li>
             <?php endif; ?>
 
-            <li><a href="<?= $basePath ?>backend/logout.php" class="login-btn">Logout</a></li>
-            <li><span class="user-name">👋 Halo, <?= htmlspecialchars($_SESSION['nama'] ?? 'Pendaki'); ?></span></li>
+            <li><a href="<?= $basePath ?>backend/logout.php" style="color:#fff;background:#e53935;padding:6px 12px;border-radius:6px;text-decoration:none;">Logout</a></li>
+            <li><span style="font-weight:600;">👋 Halo, <?= htmlspecialchars($namaUser); ?></span></li>
         <?php else: ?>
-            <li <?= ($currentPage === 'login.php') ? 'class="active"' : '' ?>>
-                <a href="<?= $basePath ?>login.php" class="login-btn">Login</a>
-            </li>
+            <li><a href="<?= $basePath ?>login.php" style="color:#fff;background:#1e88e5;padding:6px 12px;border-radius:6px;text-decoration:none;">Login</a></li>
         <?php endif; ?>
     </ul>
 </nav>
 
-<!-- ✅ SweetAlert hanya muncul di halaman utama -->
 <?php if (!empty($pesan) && $currentPage === 'index.php'): ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
