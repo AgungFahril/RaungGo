@@ -37,7 +37,20 @@ $role = $_SESSION['role'] ?? 'pengunjung';
 $namaUser = $_SESSION['nama'] ?? 'Pendaki';
 ?>
 
-<nav class="navbar" style="background:#2e7d32;padding:10px 20px;color:white;">
+<nav class="navbar" style="
+    background:#2e7d32;
+    padding:10px 20px;
+    color:white;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    z-index:1000;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+">
     <a href="<?= $basePath ?>index.php" class="nav-brand" style="font-weight:700;color:white;text-decoration:none;">Tahura Raden Soerjo</a>
     <ul class="nav-menu" style="list-style:none;display:flex;gap:15px;margin:0;padding:0;align-items:center;">
         <li><a href="<?= $basePath ?>index.php" style="color:white;text-decoration:none;">Beranda</a></li>
@@ -74,6 +87,13 @@ $namaUser = $_SESSION['nama'] ?? 'Pendaki';
         <?php endif; ?>
     </ul>
 </nav>
+
+<!-- 🧩 Tambahkan jarak agar konten tidak tertutup navbar -->
+<style>
+body {
+    padding-top: 60px;
+}
+</style>
 
 <?php if (!empty($pesan) && $currentPage === 'index.php'): ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
