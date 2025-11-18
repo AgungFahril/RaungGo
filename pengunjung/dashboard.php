@@ -19,6 +19,15 @@ $transaksi_sukses = 0;
 $transaksi_pending = 0;
 $transaksi_batal = 0;
 
+// Ambil foto profil user
+$stmt = $conn->prepare("SELECT foto_profil FROM users WHERE user_id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user_foto = $result->fetch_assoc();
+$foto_profil = $user_foto['foto_profil'] ?? null;
+$stmt->close();
+
 // Try to fetch from pesanan table (Indonesian for orders)
 try {
     // Total Transaksi
@@ -31,8 +40,8 @@ try {
         $stmt->close();
     }
     
-    // Transaksi Sukses/Approved
-    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM pesanan WHERE user_id = ? AND status_pesanan IN ('Terkonfirmasi', 'Approved', 'Confirmed')");
+    // Transaksi Sukses/Approved - menggunakan status yang umum dipakai
+    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM pesanan WHERE user_id = ? AND (status_pesanan LIKE '%lunas%' OR status_pesanan LIKE '%Terkonfirmasi%' OR status_pesanan LIKE '%Approved%' OR status_pesanan LIKE '%Confirmed%' OR status_pesanan LIKE '%selesai%')");
     if ($stmt) {
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -41,8 +50,8 @@ try {
         $stmt->close();
     }
     
-    // Transaksi Pending
-    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM pesanan WHERE user_id = ? AND status_pesanan IN ('Menunggu Pembayaran', 'Pending')");
+    // Transaksi Pending/Menunggu Pembayaran
+    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM pesanan WHERE user_id = ? AND (status_pesanan LIKE '%menunggu_pembayaran%' OR status_pesanan LIKE '%Menunggu Pembayaran%' OR status_pesanan LIKE '%Pending%' OR status_pesanan LIKE '%menunggu_konfirmasi%')");
     if ($stmt) {
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -52,7 +61,7 @@ try {
     }
     
     // Transaksi Dibatalkan
-    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM pesanan WHERE user_id = ? AND status_pesanan IN ('Dibatalkan', 'Cancelled', 'Rejected')");
+    $stmt = $conn->prepare("SELECT COUNT(*) as total FROM pesanan WHERE user_id = ? AND (status_pesanan LIKE '%batal%' OR status_pesanan LIKE '%Dibatalkan%' OR status_pesanan LIKE '%Cancelled%' OR status_pesanan LIKE '%Rejected%')");
     if ($stmt) {
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
@@ -90,10 +99,10 @@ try {
 
         .sidebar {
             width: 280px;
-            background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+            background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
             color: white;
             padding: 40px 0;
-            box-shadow: 4px 0 20px rgba(231, 76, 60, 0.3);
+            box-shadow: 4px 0 20px rgba(22, 163, 74, 0.3);
             position: fixed;
             height: 100vh;
             overflow-y: auto;
@@ -110,7 +119,7 @@ try {
         .user-avatar {
             width: 70px;
             height: 70px;
-            background: linear-gradient(135deg, #e74c3c, #d43f26);
+            background: linear-gradient(135deg, #16a34a, #15803d);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -121,6 +130,14 @@ try {
             margin-right: 18px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             border: 3px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            object-fit: cover;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-info h3 {
@@ -194,12 +211,12 @@ try {
             align-items: center;
             margin-bottom: 50px;
             padding-bottom: 30px;
-            border-bottom: 3px solid #e74c3c;
+            border-bottom: 3px solid #16a34a;
         }
 
         .top-bar h1 {
             font-size: 32px;
-            color: #e74c3c;
+            color: #16a34a;
             font-weight: 700;
         }
 
@@ -210,7 +227,7 @@ try {
         }
 
         .logout-btn {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            background: linear-gradient(135deg, #16a34a, #15803d);
             color: white;
             border: none;
             padding: 12px 25px;
@@ -219,13 +236,13 @@ try {
             text-decoration: none;
             transition: all 0.3s ease;
             font-weight: 600;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
         }
 
         .logout-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
-            background: linear-gradient(135deg, #c0392b, #a93226);
+            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.4);
+            background: linear-gradient(135deg, #15803d, #14532d);
         }
 
         .stats-grid {
@@ -243,7 +260,7 @@ try {
             transition: all 0.35s ease;
             position: relative;
             overflow: hidden;
-            border-top: 5px solid #e74c3c;
+            border-top: 5px solid #3b82f6;
         }
 
         .stat-card::before {
@@ -253,14 +270,14 @@ try {
             right: -80px;
             width: 200px;
             height: 200px;
-            background: radial-gradient(circle, rgba(231, 76, 60, 0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
             border-radius: 50%;
         }
 
         .stat-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 12px 35px rgba(231, 76, 60, 0.15);
-            border-top-color: #d43f26;
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.15);
+            border-top-color: #2563eb;
         }
 
         .stat-card.success {
@@ -280,11 +297,11 @@ try {
         }
 
         .stat-card.danger {
-            border-top-color: #e74c3c;
+            border-top-color: #ef4444;
         }
 
         .stat-card.danger:hover {
-            border-top-color: #c0392b;
+            border-top-color: #dc2626;
         }
 
         .stat-icon {
@@ -296,8 +313,8 @@ try {
             justify-content: center;
             font-size: 40px;
             margin-bottom: 20px;
-            background: linear-gradient(135deg, rgba(231, 76, 60, 0.15), rgba(211, 63, 38, 0.1));
-            border: 2px solid rgba(231, 76, 60, 0.1);
+            background: linear-gradient(135deg, rgba(22, 163, 74, 0.15), rgba(21, 128, 61, 0.1));
+            border: 2px solid rgba(22, 163, 74, 0.1);
         }
 
         .stat-card.success .stat-icon {
@@ -311,21 +328,21 @@ try {
         }
 
         .stat-card.danger .stat-icon {
-            background: linear-gradient(135deg, rgba(192, 57, 43, 0.15), rgba(231, 76, 60, 0.1));
-            border-color: rgba(231, 76, 60, 0.2);
+            background: linear-gradient(135deg, rgba(21, 128, 61, 0.15), rgba(22, 163, 74, 0.1));
+            border-color: rgba(22, 163, 74, 0.2);
         }
 
         .stat-number {
             font-size: 48px;
             font-weight: 700;
-            color: #e74c3c;
+            color: #3b82f6;
             margin-bottom: 10px;
             position: relative;
             z-index: 1;
         }
 
         .stat-card.success .stat-number {
-            color: #27ae60;
+            color:  #2e7d32;
         }
 
         .stat-card.warning .stat-number {
@@ -333,7 +350,7 @@ try {
         }
 
         .stat-card.danger .stat-number {
-            color: #e74c3c;
+            color: #ef4444;
         }
 
         .stat-label {
@@ -347,7 +364,7 @@ try {
 
         .stat-link {
             font-size: 13px;
-            color: #e74c3c;
+            color: #2e7d32;
             text-decoration: none;
             cursor: pointer;
             display: inline-flex;
@@ -359,7 +376,7 @@ try {
         }
 
         .stat-link:hover {
-            color: #c0392b;
+            color: #15803d;
             transform: translateX(5px);
         }
 
@@ -378,11 +395,11 @@ try {
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            border-left: 5px solid #e74c3c;
+            border-left: 5px solid #16a34a;
         }
 
         .content-section h2 {
-            color: #e74c3c;
+            color: #16a34a;
             margin-bottom: 20px;
             font-size: 22px;
             display: flex;
@@ -396,6 +413,28 @@ try {
             font-size: 15px;
         }
 
+        .home-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #2e7d32, #15803d);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
+            margin-top: 20px;
+            display: inline-flex;
+        }
+
+        .home-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.4);
+            background: linear-gradient(135deg, #15803d, #14532d);
+        }
+
         /* Scrollbar Styling */
         ::-webkit-scrollbar {
             width: 10px;
@@ -406,12 +445,12 @@ try {
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #e74c3c;
+            background: #16a34a;
             border-radius: 5px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #c0392b;
+            background: #15803d;
         }
 
         @media (max-width: 1024px) {
@@ -440,7 +479,7 @@ try {
                 height: auto;
                 position: relative;
                 padding: 30px 0;
-                box-shadow: 0 4px 20px rgba(139, 58, 58, 0.2);
+                box-shadow: 0 4px 20px rgba(22, 163, 74, 0.2);
             }
 
             .main-content {
@@ -484,7 +523,13 @@ try {
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <div class="user-avatar"><?php echo strtoupper(substr($_SESSION['nama'], 0, 1)); ?></div>
+                <div class="user-avatar">
+                    <?php if (!empty($foto_profil) && file_exists('../uploads/profil/' . $foto_profil)): ?>
+                        <img src="/ProjekSemester3/uploads/profil/<?php echo htmlspecialchars($foto_profil); ?>" alt="Foto Profil" onerror="this.parentElement.innerHTML='<?php echo strtoupper(substr($_SESSION['nama'], 0, 1)); ?>'">
+                    <?php else: ?>
+                        <?php echo strtoupper(substr($_SESSION['nama'], 0, 1)); ?>
+                    <?php endif; ?>
+                </div>
                 <div class="user-info">
                     <h3><?php echo $_SESSION['nama']; ?></h3>
                     <div class="user-status">
@@ -495,17 +540,14 @@ try {
             </div>
 
             <div class="sidebar-nav">
-                <a href="dashboard.php" class="nav-item">
-                    📊 Dashboard
+                <a href="edit_profil.php" class="nav-item">
+                    👤 Edit Profil
                 </a>
                 <a href="booking.php" class="nav-item">
                     📅 Booking
                 </a>
-                <a href="pembayaran.php" class="nav-item">
-                    💳 Pembayaran
-                </a>
-                <a href="sop.php" class="nav-item">
-                    📋 SOP
+                <a href="../pengunjung/dashboard.php?tab=transaksi" class="nav-item">
+                    📊 Transaksi
                 </a>
                 <a href="../backend/logout.php" class="nav-item">
                     🚪 Logout
@@ -529,7 +571,7 @@ try {
                     <div class="stat-icon">ℹ️</div>
                     <div class="stat-number"><?php echo $total_transaksi; ?></div>
                     <div class="stat-label">Total Transaksi</div>
-                    <a href="booking.php" class="stat-link">Selengkapnya</a>
+                    <a href="../StatusBooking.php?filter=all" class="stat-link">Selengkapnya</a>
                 </div>
 
                 <!-- Transaksi Sukses -->
@@ -537,7 +579,7 @@ try {
                     <div class="stat-icon">✓</div>
                     <div class="stat-number"><?php echo $transaksi_sukses; ?></div>
                     <div class="stat-label">Transaksi Sukses</div>
-                    <a href="booking.php" class="stat-link">Selengkapnya</a>
+                    <a href="../StatusBooking.php?filter=success" class="stat-link">Selengkapnya</a>
                 </div>
 
                 <!-- Transaksi Pending -->
@@ -545,7 +587,7 @@ try {
                     <div class="stat-icon">⏱</div>
                     <div class="stat-number"><?php echo $transaksi_pending; ?></div>
                     <div class="stat-label">Transaksi Menunggu</div>
-                    <a href="booking.php" class="stat-link">Selengkapnya</a>
+                    <a href="../StatusBooking.php?filter=pending" class="stat-link">Selengkapnya</a>
                 </div>
 
                 <!-- Transaksi Dibatalkan -->
@@ -553,7 +595,7 @@ try {
                     <div class="stat-icon">✕</div>
                     <div class="stat-number"><?php echo $transaksi_batal; ?></div>
                     <div class="stat-label">Transaksi Dibatalkan</div>
-                    <a href="booking.php" class="stat-link">Selengkapnya</a>
+                    <a href="../StatusBooking.php?filter=cancelled" class="stat-link">Selengkapnya</a>
                 </div>
             </div>
 
@@ -565,6 +607,7 @@ try {
                     mengecek status pembayaran, dan melihat informasi SOP pendakian melalui menu di samping. 
                     Pastikan semua data Anda akurat untuk pengalaman booking yang lancar.
                 </p>
+                <a href="../index.php" class="home-button">🏠 Kembali ke Halaman Utama</a>
             </div>
         </div>
     </div>
