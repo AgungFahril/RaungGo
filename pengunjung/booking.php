@@ -55,19 +55,88 @@ if (!$data_jalur) {
 <link rel="stylesheet" href="../style.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 body {
     font-family: 'Poppins', sans-serif;
     background: #f3f6f3 url('../images/Gunung_Raung.jpg') no-repeat center top;
     background-size: cover;
     color: #333;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+.main-container {
+    display: flex;
+    flex: 1;
+    margin-top: 60px;
+}
+.sidebar {
+    width: 250px;
+    background: #2e7d32;
+    color: white;
+    padding: 20px;
+    position: fixed;
+    left: 0;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    z-index: 999;
+}
+.sidebar-header {
+    padding-bottom: 20px;
+    border-bottom: 2px solid #1b5e20;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.sidebar-header:hover {
+    opacity: 0.9;
+}
+.sidebar-header h3 {
+    color: white;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+.sidebar-header p {
+    color: #c8e6c9;
+    font-size: 12px;
+}
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.nav-item {
+    color: white;
+    text-decoration: none;
+    padding: 12px 15px;
+    border-radius: 8px;
+    transition: 0.3s;
+    display: block;
+    font-weight: 500;
+}
+.nav-item:hover {
+    background: #1b5e20;
+    transform: translateX(5px);
+}
+.nav-item.active {
+    background: #1b5e20;
+    border-left: 4px solid #43a047;
+    padding-left: 11px;
 }
 .booking-wrapper {
     max-width: 900px;
-    margin: 120px auto 60px auto;
+    margin: 40px auto 60px calc(250px + 20px);
     background: rgba(255,255,255,0.96);
     border-radius: 15px;
     padding: 35px 45px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    flex: 1;
 }
 h2 {
     text-align: center;
@@ -146,6 +215,35 @@ input[readonly], textarea[readonly] { background: #f7f7f7; }
     align-items: center;
     margin-top: 25px;
 }
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        margin-top: 0;
+    }
+    .main-container {
+        flex-direction: column;
+    }
+    .booking-wrapper {
+        margin: 0 auto;
+        padding: 20px 15px;
+    }
+    .nav-item {
+        display: inline-block;
+        padding: 8px 12px;
+        margin-right: 5px;
+        font-size: 12px;
+    }
+    .sidebar-header {
+        display: none;
+    }
+    .sidebar-nav {
+        flex-direction: row;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+}
 </style>
 </head>
 <body>
@@ -154,7 +252,24 @@ input[readonly], textarea[readonly] { background: #f7f7f7; }
     <?php include '../includes/navbar_user.php'; ?>
 </header>
 
-<main class="booking-wrapper">
+<div class="main-container">
+    <aside class="sidebar">
+        <div class="sidebar-header" onclick="openProfilModal()">
+            <h3>👤 Profil</h3>
+            <p><?= htmlspecialchars($user_name); ?></p>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="profil.php" class="nav-item">👤 Profil Pribadi</a>
+            <a href="booking.php" class="nav-item active">✏️ Booking Pendakian</a>
+            <a href="pembayaran.php" class="nav-item">💳 Pembayaran</a>
+            <a href="detail_transaksi.php" class="nav-item">📋 Detail Transaksi</a>
+            <a href="sop.php" class="nav-item">📖 SOP Pendakian</a>
+            <a href="lengkapi_data.php" class="nav-item">✏️ Edit Profil</a>
+        </nav>
+        <a href="../backend/logout.php" class="nav-item" style="border-top:1px solid rgba(255,255,255,0.15); background:#e53935; margin-top:auto;">🚪 Logout</a>
+    </aside>
+
+    <main class="booking-wrapper">
     <h2>🧗 Form Booking Pendakian</h2>
 
     <!-- Tombol kembali -->
@@ -206,6 +321,76 @@ input[readonly], textarea[readonly] { background: #f7f7f7; }
         </div>
     </form>
 </main>
+</div>
+
+<!-- Modal Profil -->
+<div id="profilModal" class="modal-profil" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-in-out;
+">
+    <div style="
+        background: white;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 450px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        animation: slideInUp 0.4s ease-out;
+    ">
+        <div style="
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        ">
+            <h2 style="margin: 0; font-size: 24px;">👤 Profil Saya</h2>
+            <button onclick="closeProfilModal()" style="
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+            ">✕</button>
+        </div>
+        <div style="padding: 25px;" id="profilContent">
+            <p>Memuat...</p>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.modal-profil.show {
+    display: flex !important;
+}
+</style>
 
 <script>
 // Otomatis generate form anggota
@@ -234,6 +419,40 @@ if (container && jumlahPendaki > 1) {
         container.appendChild(div);
     }
 }
+
+// 👤 Modal Profil Functions
+function openProfilModal() {
+    const modal = document.getElementById('profilModal');
+    const content = document.getElementById('profilContent');
+    modal.classList.add('show');
+    
+    // Fetch profil data
+    fetch('../backend/get_profil_modal.php')
+        .then(resp => resp.text())
+        .then(data => {
+            content.innerHTML = data;
+        })
+        .catch(err => {
+            content.innerHTML = '<p style="color:red;">Gagal memuat profil.</p>';
+        });
+}
+
+function closeProfilModal() {
+    const modal = document.getElementById('profilModal');
+    modal.classList.remove('show');
+}
+
+// Close modal when clicking backdrop
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('profilModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProfilModal();
+            }
+        });
+    }
+});
 </script>
 
 <footer style="text-align:center; padding:25px; color:#555;">
