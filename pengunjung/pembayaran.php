@@ -1,6 +1,6 @@
 <?php
 // =============================================
-// 💳 PEMBAYARAN PENDAKIAN — FINAL PRG READY
+// 💳 PEMBAYARAN PENDAKIAN — FINAL VERSION
 // =============================================
 date_default_timezone_set('Asia/Jakarta');
 ini_set('display_errors', 1);
@@ -12,7 +12,7 @@ include '../backend/koneksi.php';
 // --- Ambil pesanan_id dari URL
 $pesanan_id = $_GET['pesanan_id'] ?? null;
 if (!$pesanan_id) {
-    echo "<script>alert('Pesanan tidak ditemukan!'); window.location='../StatusBooking.php';</script>";
+    echo "<script>alert('Pesanan tidak ditemukan!'); window.location='dashboard.php';</script>";
     exit;
 }
 
@@ -30,20 +30,21 @@ $pesanan = $q->get_result()->fetch_assoc();
 $q->close();
 
 if (!$pesanan) {
-    echo "<script>alert('Data pesanan tidak ditemukan!'); window.location='../StatusBooking.php';</script>";
+    echo "<script>alert('Data pesanan tidak ditemukan!'); window.location='dashboard.php';</script>";
     exit;
 }
 
 // --- Jika sudah bayar / menunggu konfirmasi → langsung ke detail
-if (in_array($pesanan['status_pesanan'], ['menunggu_konfirmasi', 'lunas', 'batal'])) {
+if (in_array($pesanan['status_pesanan'], ['menunggu_konfirmasi', 'lunas', 'dibatalkan'])) {
     header("Location: detail_transaksi.php?pesanan_id={$pesanan_id}");
     exit;
 }
 
-// --- Jika form disubmit
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// --- Jika form disubmit (upload bukti pembayaran)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_bukti'])) {
     try {
-        $jumlah_bayar = floatval($_POST['jumlah_bayar']);
+        // Backend TIDAK mengambil jumlah bayar dari input user → langsung dari database
+        $jumlah_bayar = intval($pesanan['total_bayar']);
         $tanggal_bayar = date('Y-m-d H:i:s');
         $metode = 'transfer_bank';
         $status_pembayaran = 'pending';
@@ -68,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Gagal menyimpan file bukti pembayaran ke server.");
         }
 
-        // --- Simpan data pembayaran
+        // --- Simpan pembayaran
         $stmt = $conn->prepare("
             INSERT INTO pembayaran (pesanan_id, metode, jumlah_bayar, tanggal_bayar, bukti_bayar, status_pembayaran)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -80,8 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // --- Update status pesanan
         $conn->query("UPDATE pesanan SET status_pesanan='menunggu_konfirmasi' WHERE pesanan_id=$pesanan_id");
 
-        // ✅ Gunakan PRG agar tidak terjadi cache miss
-        $_SESSION['success_message'] = "Bukti pembayaran berhasil dikirim! Admin akan segera memverifikasi pembayaran kamu.";
+        $_SESSION['success_message'] = "Bukti pembayaran berhasil dikirim!";
         header("Location: detail_transaksi.php?pesanan_id=" . $pesanan_id);
         exit;
 
@@ -100,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Pembayaran Pendakian</title>
 <link rel="stylesheet" href="../style.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
 body {
     font-family: 'Poppins', sans-serif;
@@ -123,7 +124,6 @@ h2 { text-align: center; color: #2e7d32; margin-bottom: 25px; font-weight: 700; 
     padding: 15px 20px;
     margin-bottom: 25px;
 }
-label { display: block; margin-top: 10px; font-weight: 600; }
 input, input[type=file] {
     width: 100%;
     padding: 10px;
@@ -143,6 +143,13 @@ input, input[type=file] {
     cursor: pointer;
 }
 .btn:hover { background: #2e7d32; }
+.btn-danger {
+    background: #d32f2f;
+    margin-top: 10px;
+}
+.btn-danger:hover {
+    background: #b71c1c;
+}
 </style>
 </head>
 <body>
@@ -167,17 +174,77 @@ input, input[type=file] {
         <p>Atas Nama: <b>Agung Fahril Gunawan</b></p>
     </div>
 
-    <form method="POST" enctype="multipart/form-data">
+   <!-- ❌ Jika status bukan 'menunggu_pembayaran', tidak boleh bayar -->
+<?php if ($pesanan['status_pesanan'] !== 'menunggu_pembayaran'): ?>
+    <script>
+        Swal.fire(
+            'Pembayaran Tidak Tersedia',
+            'Pesanan sudah dibayar atau sedang diverifikasi admin.',
+            'warning'
+        ).then(()=> {
+            window.location = 'detail_transaksi.php?pesanan_id=<?= intval($pesanan_id) ?>';
+        });
+    </script>
+<?php
+    exit;
+endif;
+?>
+    <form method="POST" enctype="multipart/form-data" id="formBayar">
         <label>Jumlah Bayar (Rp)</label>
-        <input type="number" name="jumlah_bayar" value="<?= htmlspecialchars($pesanan['total_bayar']); ?>" required>
+        <input type="text" value="Rp <?= number_format($pesanan['total_bayar'], 0, ',', '.'); ?>" readonly>
+        <input type="hidden" name="jumlah_bayar" value="<?= $pesanan['total_bayar']; ?>">
 
         <label>Upload Bukti Pembayaran</label>
         <input type="file" name="bukti_bayar" accept=".jpg,.jpeg,.png,.pdf" required>
 
-        <button type="submit" name="upload" class="btn">Kirim Bukti Pembayaran</button>
+        <button type="button" class="btn" onclick="konfirmasiBayar()">Kirim Bukti Pembayaran</button>
     </form>
+
+    <br>
+
+    <!-- TOMBOL BATALKAN PESANAN -->
+    <button class="btn" style="background:#d32f2f" onclick="batalkanPesanan()">Batalkan Pesanan</button>
 </main>
 
+<script>
+// ===============================
+// Validasi sebelum bayar
+// ===============================
+function konfirmasiBayar() {
+    Swal.fire({
+        icon: 'question',
+        title: 'Kirim Bukti Pembayaran?',
+        text: 'Pastikan jumlah dan file bukti sudah benar.',
+        showCancelButton: true,
+        confirmButtonColor: '#2e7d32',
+        cancelButtonColor: '#888',
+        confirmButtonText: 'Ya, kirim!'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            document.getElementById('formBayar').submit();
+        }
+    });
+}
+
+// ===============================
+// Tombol batal dengan validasi
+// ===============================
+function batalkanPesanan() {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Batalkan Pesanan?',
+        text: 'Jika dibatalkan, kuota akan dikembalikan dan booking ini tidak bisa dipulihkan.',
+        showCancelButton: true,
+        confirmButtonColor: '#d32f2f',
+        cancelButtonColor: '#888',
+        confirmButtonText: 'Ya, batalkan!'
+    }).then((res) => {
+        if (res.isConfirmed) {
+            window.location = '../backend/proses_batal.php?pesanan_id=<?= $pesanan_id ?>';
+        }
+    });
+}
+</script>
 <footer style="text-align:center; padding:20px; color:#555;">
     &copy; 2025 Tahura Raden Soerjo
 </footer>
