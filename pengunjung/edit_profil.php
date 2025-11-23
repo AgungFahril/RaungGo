@@ -195,11 +195,19 @@ if (isset($_POST['ubah_password'])) {
             </div>
         </div>
         <div class="sidebar-nav">
+<<<<<<< HEAD
             <a href="profil.php" class="nav-item">👤 Profil Pribadi</a>
             <a href="edit_profil.php" class="nav-item active">✏️ Edit Profil</a>
             <a href="booking.php" class="nav-item">📅 Booking</a>
             <a href="../pengunjung/dashboard.php?tab=transaksi" class="nav-item">📊 Transaksi</a>
             <a href="../backend/logout.php" class="nav-item" style="background:#e53935;margin-top:10px;">🚪 Logout</a>
+=======
+            <a href="dashboard.php" class="nav-item">🏠 Dashboard</a>
+            <a href="edit_profil.php" class="nav-item active">👤 Edit Profil</a>
+            <a href="booking.php" class="nav-item">📅 Booking</a>
+            <a href="../pengunjung/dashboard.php?tab=transaksi" class="nav-item">📊 Transaksi</a>
+            <a href="../backend/logout.php" class="nav-item">🚪 Logout</a>
+>>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
         </div>
     </div>
 
@@ -282,4 +290,8 @@ if (isset($_POST['ubah_password'])) {
     </div>
 </div>
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b

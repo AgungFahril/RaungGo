@@ -24,6 +24,7 @@ $user_foto = $res->fetch_assoc();
 $foto_profil = $user_foto['foto_profil'] ?? null;
 $stmt->close();
 
+<<<<<<< HEAD
 // Ambil data profil lengkap untuk modal
 $stmt_profil = $conn->prepare("
     SELECT u.nama, u.email, u.foto_profil, p.nik, p.alamat, p.no_hp, p.provinsi, p.kabupaten, p.kecamatan
@@ -36,6 +37,8 @@ $stmt_profil->execute();
 $profil_data = $stmt_profil->get_result()->fetch_assoc();
 $stmt_profil->close();
 
+=======
+>>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
 // Statistik
 $total_transaksi = $transaksi_sukses = $transaksi_pending = $transaksi_batal = 0;
 
@@ -75,7 +78,10 @@ try {
 /* ANIMATIONS */
 @keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
 @keyframes slideIn{from{transform:translateX(-50px);opacity:0}to{transform:none;opacity:1}}
+<<<<<<< HEAD
 @keyframes slideInUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+=======
+>>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 
 /* BODY */
@@ -234,6 +240,7 @@ body{
     .main-content{margin-left:0;padding:25px}
     .stats-grid{grid-template-columns:1fr;gap:20px}
 }
+<<<<<<< HEAD
 
 /* MODAL PROFIL */
 .modal{
@@ -539,6 +546,8 @@ body{
     .profile-card-details{grid-template-columns:1fr}
 }
 
+=======
+>>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
 </style>
 </head>
 <body>
@@ -546,7 +555,11 @@ body{
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div>
+<<<<<<< HEAD
             <div class="sidebar-header" onclick="openProfilModal()" style="cursor:pointer;transition:.3s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background=''">
+=======
+            <div class="sidebar-header">
+>>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
                 <div class="user-avatar">
                     <?php if (!empty($foto_profil) && file_exists("../uploads/profil/$foto_profil")): ?>
                         <img src="../uploads/profil/<?php echo htmlspecialchars($foto_profil); ?>" alt="Profil">
@@ -561,13 +574,22 @@ body{
             </div>
 
             <nav class="sidebar-nav">
+<<<<<<< HEAD
                 <a href="profil.php" class="nav-item">👤 Profil Pribadi</a>
                 <a href="edit_profil.php" class="nav-item">✏️ Edit Profil</a>
+=======
+                <a href="dashboard.php" class="nav-item active">🏠 Dashboard</a>
+                <a href="edit_profil.php" class="nav-item">👤 Edit Profil</a>
+>>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
                 <a href="booking.php" class="nav-item">📅 Booking</a>
                 <a href="../pengunjung/dashboard.php?tab=transaksi" class="nav-item">📊 Transaksi</a>
             </nav>
         </div>
+<<<<<<< HEAD
         <a href="../backend/logout.php" class="nav-item" style="border-top:1px solid rgba(255,255,255,0.15); background:#e53935; margin-top:auto;">🚪 Logout</a>
+=======
+        <a href="../backend/logout.php" class="nav-item" style="border-top:1px solid rgba(255,255,255,0.15)">🚪 Logout</a>
+>>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -623,6 +645,7 @@ body{
         </div>
     </main>
 </div>
+<<<<<<< HEAD
 
 <!-- MODAL PROFIL -->
 <div id="profilModal" class="modal">
@@ -691,5 +714,7 @@ document.addEventListener('keydown',e=>{
     if(e.key==='Escape')closeProfilModal()
 })
 </script>
+=======
+>>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
 </body>
 </html>
