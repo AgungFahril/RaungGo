@@ -1,7 +1,149 @@
 <?php
 session_start();
 include '../backend/koneksi.php';
+header("Cache-Control: no-cache, must-revalidate");
 
+// Jika akses AJAX untuk fetch data kuota
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'fetch') {
+    // AJAX fetch: validasi input, hit DB, kembalikan JSON
+    $jalur_id = intval($_POST['jalur_id'] ?? 0);
+    $tanggal_naik = $_POST['tanggal_naik'] ?? '';
+    $tanggal_turun = $_POST['tanggal_turun'] ?? '';
+    $jumlah_pendaki = intval($_POST['jumlah_pendaki'] ?? 0);
+
+    $resp = ['success' => false, 'errors' => [], 'data' => null];
+
+    // Validasi tanggal dasar
+    $today = date('Y-m-d');
+    if (!$jalur_id) $resp['errors'][] = "Pilih jalur terlebih dahulu.";
+    if (!$tanggal_naik) $resp['errors'][] = "Tanggal naik diperlukan.";
+    if (!$tanggal_turun) $resp['errors'][] = "Tanggal turun diperlukan.";
+    if ($tanggal_naik && strtotime($tanggal_naik) < strtotime($today)) $resp['errors'][] = "Tanggal naik tidak boleh sebelum hari ini.";
+    if ($tanggal_naik && $tanggal_turun && strtotime($tanggal_turun) < strtotime($tanggal_naik)) $resp['errors'][] = "Tanggal turun harus sama atau setelah tanggal naik.";
+    if ($jumlah_pendaki <= 0) $resp['errors'][] = "Masukkan jumlah pendaki minimal 1.";
+
+    // Ambil nama jalur untuk aturan minimal
+    if (empty($resp['errors'])) {
+        $qj = $conn->prepare("SELECT nama_jalur, kuota_harian, tarif_tiket, deskripsi FROM jalur_pendakian WHERE jalur_id = ? LIMIT 1");
+        $qj->bind_param("i", $jalur_id);
+        $qj->execute();
+        $rj = $qj->get_result()->fetch_assoc();
+        $qj->close();
+
+        if (!$rj) {
+            $resp['errors'][] = "Data jalur tidak ditemukan.";
+        } else {
+            $nama_jalur = $rj['nama_jalur'];
+            $kuota_harian = intval($rj['kuota_harian'] ?? 0);
+            $tarif = intval($rj['tarif_tiket'] ?? 0);
+            $deskripsi = $rj['deskripsi'] ?? '';
+
+            // Validasi minimal pendaki berdasarkan jalur
+            $min_required = 1;
+            if (strtolower($nama_jalur) === 'kalibaru') $min_required = 6;
+            elseif (strtolower($nama_jalur) === 'sumberwringin') $min_required = 2;
+            // Jika Anda punya lebih banyak ketentuan, tambahkan di sini.
+
+            if ($jumlah_pendaki < $min_required) {
+                $resp['errors'][] = "Minimal pendaki untuk jalur {$nama_jalur} adalah {$min_required} orang.";
+            } else {
+                // Periksa apakah sudah ada row pendakian untuk rentang tanggal ini
+                $cek = $conn->prepare("SELECT pendakian_id, kuota_tersedia FROM pendakian WHERE jalur_id = ? AND tanggal_pendakian = ? AND tanggal_turun = ? LIMIT 1");
+                $cek->bind_param("iss", $jalur_id, $tanggal_naik, $tanggal_turun);
+                $cek->execute();
+                $res = $cek->get_result();
+
+                if ($res->num_rows > 0) {
+                    $row = $res->fetch_assoc();
+                    $pendakian_id = intval($row['pendakian_id']);
+                    $kuota_tersedia = intval($row['kuota_tersedia']);
+                } else {
+                    // belum ada, gunakan kuota_harian sebagai kuota awal (belum insert)
+                    $pendakian_id = null;
+                    $kuota_tersedia = $kuota_harian;
+                }
+                $cek->close();
+
+                // Hitung jumlah sudah dipesan pada pendakian ini (jika ada)
+                $jumlah_terpesan = 0;
+                if ($pendakian_id) {
+                    $qp = $conn->prepare("SELECT IFNULL(SUM(jumlah_pendaki),0) as booked FROM pesanan WHERE pendakian_id = ? AND status_pesanan NOT IN ('dibatalkan','cancelled')");
+                    $qp->bind_param("i", $pendakian_id);
+                    $qp->execute();
+                    $jumlah_terpesan = intval($qp->get_result()->fetch_assoc()['booked'] ?? 0);
+                    $qp->close();
+                } else {
+                    $jumlah_terpesan = 0;
+                }
+
+                $sisa = max(0, $kuota_tersedia - $jumlah_terpesan);
+                $total_harga = $tarif * max(1, $jumlah_pendaki);
+
+                $persen = $kuota_harian > 0 ? round(($sisa / $kuota_harian) * 100) : 0;
+                $warna = ($persen > 60) ? '#4caf50' : (($persen > 30) ? '#fbc02d' : '#e53935');
+
+                $resp['success'] = true;
+                $resp['data'] = [
+                    'pendakian_id' => $pendakian_id,
+                    'nama_jalur' => $nama_jalur,
+                    'kuota_harian' => $kuota_harian,
+                    'kuota_tersedia' => $kuota_tersedia,
+                    'jumlah_terpesan' => $jumlah_terpesan,
+                    'sisa' => $sisa,
+                    'persen' => $persen,
+                    'warna' => $warna,
+                    'tarif' => $tarif,
+                    'deskripsi' => $deskripsi,
+                    'total_harga' => $total_harga,
+                    'min_required' => $min_required,
+                ];
+            }
+        }
+    }
+
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($resp);
+    exit;
+}
+
+// Jika konfirmasi Lanjut Booking (submit dari tombol Lanjut)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'confirm') {
+    $pendakian_id = intval($_POST['pendakian_id'] ?? 0);
+    $jumlah_pendaki = intval($_POST['jumlah_pendaki'] ?? 0);
+    $tanggal_naik = $_POST['tanggal_naik'] ?? '';
+    $tanggal_turun = $_POST['tanggal_turun'] ?? '';
+
+    if (!$pendakian_id) {
+        // Jika belum ada pendakian row, kita harus insert (sama logic seperti fetch)
+        $jalur_id = intval($_POST['jalur_id'] ?? 0);
+        // ambil kuota_harian
+        $qk = $conn->prepare("SELECT kuota_harian FROM jalur_pendakian WHERE jalur_id = ? LIMIT 1");
+        $qk->bind_param("i", $jalur_id);
+        $qk->execute();
+        $r = $qk->get_result()->fetch_assoc();
+        $qk->close();
+        $kuota_awal = intval($r['kuota_harian'] ?? 0);
+
+        // insert pendakian
+        $ins = $conn->prepare("INSERT INTO pendakian (jalur_id, tanggal_pendakian, tanggal_turun, kuota_tersedia, status) VALUES (?, ?, ?, ?, 'tersedia')");
+        $ins->bind_param("issi", $jalur_id, $tanggal_naik, $tanggal_turun, $kuota_awal);
+        $ins->execute();
+        $pendakian_id = $conn->insert_id;
+        $ins->close();
+    }
+
+    // Set session yang dibutuhkan booking.php
+    $_SESSION['selected_pendakian'] = $pendakian_id;
+    $_SESSION['jumlah_pendaki'] = $jumlah_pendaki;
+    $_SESSION['tanggal_naik'] = $tanggal_naik;
+    $_SESSION['tanggal_turun'] = $tanggal_turun;
+
+    // Redirect ke booking.php (booking akan membaca session)
+    header("Location: booking.php");
+    exit;
+}
+
+// ---- Render halaman biasa (GET) ----
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php?redirect=pengunjung/kuota.php");
     exit;
@@ -15,113 +157,17 @@ $jalur_id = $_SESSION['kuota_jalur_id'] ?? null;
 $tanggal_naik = $_SESSION['kuota_tanggal_naik'] ?? null;
 $tanggal_turun = $_SESSION['kuota_tanggal_turun'] ?? null;
 $error_message = null;
-
-// Tombol reset
-if (isset($_POST['reset_data'])) {
-    unset(
-        $_SESSION['kuota_data'],
-        $_SESSION['kuota_total'],
-        $_SESSION['kuota_deskripsi'],
-        $_SESSION['kuota_jumlah'],
-        $_SESSION['kuota_jalur_id'],
-        $_SESSION['kuota_tanggal_naik'],
-        $_SESSION['kuota_tanggal_turun']
-    );
-    header("Location: kuota.php");
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cek_kuota'])) {
-    $jalur_id = $_POST['jalur_id'] ?? '';
-    $tanggal_naik = $_POST['tanggal_naik'] ?? '';
-    $tanggal_turun = $_POST['tanggal_turun'] ?? '';
-    $jumlah_pendaki = intval($_POST['jumlah_pendaki'] ?? 0);
-
-    // 🧩 Validasi dasar
-    if ($jumlah_pendaki < 2) {
-        $error_message = "Minimal pendaki adalah 2 orang!";
-    } elseif (strtotime($tanggal_naik) <= strtotime('today')) {
-        $error_message = "Tanggal pendakian harus minimal H-1 dari hari ini!";
-    } elseif ($tanggal_turun <= $tanggal_naik) {
-        $error_message = "Tanggal turun harus lebih besar dari tanggal naik!";
-    } elseif ($jalur_id && $tanggal_naik && $tanggal_turun) {
-        // 🔹 Cek atau buat data pendakian
-        $cek = $conn->prepare("
-            SELECT pendakian_id, kuota_tersedia 
-            FROM pendakian 
-            WHERE jalur_id=? AND tanggal_pendakian=? AND tanggal_turun=? LIMIT 1
-        ");
-        $cek->bind_param("iss", $jalur_id, $tanggal_naik, $tanggal_turun);
-        $cek->execute();
-        $res = $cek->get_result();
-
-        if ($res->num_rows > 0) {
-            $row = $res->fetch_assoc();
-            $pendakian_id = $row['pendakian_id'];
-        } else {
-            $qKuota = $conn->prepare("SELECT kuota_harian FROM jalur_pendakian WHERE jalur_id=?");
-            $qKuota->bind_param("i", $jalur_id);
-            $qKuota->execute();
-            $kuotaData = $qKuota->get_result()->fetch_assoc();
-            $qKuota->close();
-            $kuota_awal = $kuotaData['kuota_harian'] ?? 0;
-
-            $insert = $conn->prepare("
-                INSERT INTO pendakian (jalur_id, tanggal_pendakian, tanggal_turun, kuota_tersedia, status)
-                VALUES (?, ?, ?, ?, 'tersedia')
-            ");
-            $insert->bind_param("issi", $jalur_id, $tanggal_naik, $tanggal_turun, $kuota_awal);
-            $insert->execute();
-            $pendakian_id = $conn->insert_id;
-            $insert->close();
-        }
-        $cek->close();
-
-        // 🔹 Ambil info jalur dan sisa kuota
-        $q = $conn->prepare("
-            SELECT jp.nama_jalur, jp.kuota_harian, jp.tarif_tiket, jp.deskripsi,
-                   (p.kuota_tersedia - IFNULL(SUM(ps.jumlah_pendaki),0)) AS sisa_kuota
-            FROM jalur_pendakian jp
-            JOIN pendakian p ON jp.jalur_id = p.jalur_id
-            LEFT JOIN pesanan ps ON p.pendakian_id = ps.pendakian_id
-            WHERE p.pendakian_id = ?
-            GROUP BY p.pendakian_id
-        ");
-        $q->bind_param("i", $pendakian_id);
-        $q->execute();
-        $data_kuota = $q->get_result()->fetch_assoc();
-        $q->close();
-
-        if ($data_kuota) {
-            $total_harga = $jumlah_pendaki * $data_kuota['tarif_tiket'];
-            $deskripsi = $data_kuota['deskripsi'];
-        }
-
-        // Simpan ke session
-        $_SESSION['selected_pendakian'] = $pendakian_id;
-        $_SESSION['jumlah_pendaki'] = $jumlah_pendaki;
-        $_SESSION['tanggal_naik'] = $tanggal_naik;
-        $_SESSION['tanggal_turun'] = $tanggal_turun;
-
-        $_SESSION['kuota_data'] = $data_kuota;
-        $_SESSION['kuota_total'] = $total_harga;
-        $_SESSION['kuota_deskripsi'] = $deskripsi;
-        $_SESSION['kuota_jumlah'] = $jumlah_pendaki;
-        $_SESSION['kuota_jalur_id'] = $jalur_id;
-        $_SESSION['kuota_tanggal_naik'] = $tanggal_naik;
-        $_SESSION['kuota_tanggal_turun'] = $tanggal_turun;
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Cek Kuota Pendakian</title>
 <link rel="stylesheet" href="../style.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
+/* (tetap gunakan style original Anda supaya konsisten) */
 body {
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(to bottom right, #e8f5e9, #c8e6c9);
@@ -143,16 +189,13 @@ h2 {
     font-weight: 700;
     font-size: 1.8rem;
 }
-form {
+form.grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 25px;
     margin-bottom: 20px;
 }
-label {
-    font-weight: 600;
-    color: #2e7d32;
-}
+label { font-weight: 600; color: #2e7d32; }
 input, select {
     width: 100%;
     padding: 11px;
@@ -186,46 +229,16 @@ input:focus, select:focus {
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     animation: fadeIn 0.4s ease-in-out;
 }
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.result-card h3 {
-    color: #2e7d32;
-    margin-bottom: 8px;
-    font-size: 1.4rem;
-}
-.deskripsi {
-    background: #f1f8e9;
-    border-left: 5px solid #8bc34a;
-    padding: 10px 15px;
-    border-radius: 10px;
-    color: #444;
-    margin-bottom: 15px;
-}
-.total {
-    font-weight: bold;
-    color: #e91e63;
-    font-size: 1.1rem;
-}
-.progress-container {
-    margin: 15px 0;
-    background: #e0e0e0;
-    border-radius: 10px;
-    overflow: hidden;
-    height: 20px;
-}
-.progress-bar {
-    height: 100%;
-    width: 0%;
-    transition: width 0.5s ease-in-out;
-    border-radius: 10px;
-}
-footer {
-    text-align: center;
-    color: #555;
-    margin: 40px 0;
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px);} to { opacity: 1; transform: translateY(0);} }
+.result-card h3 { color: #2e7d32; margin-bottom: 8px; font-size: 1.4rem; }
+.deskripsi { background: #f1f8e9; border-left: 5px solid #8bc34a; padding: 10px 15px; border-radius: 10px; color: #444; margin-bottom: 15px; }
+.total { font-weight: bold; color: #e91e63; font-size: 1.1rem; }
+.progress-container { margin: 15px 0; background: #e0e0e0; border-radius: 10px; overflow: hidden; height: 20px; }
+.progress-bar { height: 100%; width: 0%; transition: width 0.5s ease-in-out; border-radius: 10px; }
+
+footer { text-align: center; color: #555; margin: 40px 0; }
+.note { font-size: 0.95rem; color: #666; margin-top: 8px; }
+.small { font-size: 0.9rem; color: #777; }
 </style>
 </head>
 <body>
@@ -236,10 +249,10 @@ footer {
 <div class="container">
     <h2>🧭 Cek Kuota & Tarif Pendakian</h2>
 
-    <form method="POST">
+    <form class="grid" id="kuotaForm" onsubmit="return false;">
         <div>
             <label>Jalur Pendakian</label>
-            <select name="jalur_id" required>
+            <select name="jalur_id" id="jalur_id" required>
                 <option value="">-- Pilih Jalur --</option>
                 <?php
                 $jalur = $conn->query("SELECT jalur_id, nama_jalur FROM jalur_pendakian WHERE status='aktif' ORDER BY nama_jalur ASC");
@@ -250,66 +263,237 @@ footer {
                     </option>
                 <?php endwhile; ?>
             </select>
+            <div class="note small" id="jalurNote">Catatan: Kalibaru minimal 6 orang (Guide wajib).</div>
         </div>
+
         <div>
             <label>Jumlah Pendaki</label>
-            <input type="number" name="jumlah_pendaki" min="2" max="15" required value="<?= htmlspecialchars($jumlah_pendaki ?? ''); ?>">
+            <input type="number" id="jumlah_pendaki" name="jumlah_pendaki" min="1" max="50" value="<?= htmlspecialchars($jumlah_pendaki ?? '') ?>" required>
+            <div class="note small">Masukkan total anggota termasuk ketua.</div>
         </div>
+
         <div>
             <label>Tanggal Naik</label>
-            <input type="date" name="tanggal_naik" required value="<?= htmlspecialchars($tanggal_naik ?? ''); ?>">
+            <input type="date" id="tanggal_naik" name="tanggal_naik" value="<?= htmlspecialchars($tanggal_naik ?? '') ?>" required>
         </div>
+
         <div>
             <label>Tanggal Turun</label>
-            <input type="date" name="tanggal_turun" required value="<?= htmlspecialchars($tanggal_turun ?? ''); ?>">
+            <input type="date" id="tanggal_turun" name="tanggal_turun" value="<?= htmlspecialchars($tanggal_turun ?? '') ?>" required>
         </div>
+
         <div style="align-self:end;">
-            <button type="submit" name="cek_kuota" class="btn">Cek Kuota</button>
+            <!-- Tombol dummy untuk akses keyboard; fungsi fetch otomatis -->
+            <button id="resetBtn" class="btn" type="button" style="background:#757575;">Reset</button>
         </div>
-        <?php if ($data_kuota): ?>
-        <div style="align-self:end;">
-            <button type="submit" name="reset_data" class="btn" style="background:#757575;">Reset</button>
-        </div>
-        <?php endif; ?>
     </form>
 
-    <?php if ($error_message): ?>
-    <script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Validasi Gagal',
-            text: '<?= addslashes($error_message) ?>',
-            confirmButtonColor: '#e53935'
-        });
-    </script>
-    <?php endif; ?>
-
-    <?php if ($data_kuota):
-        $total_kuota = max(1, $data_kuota['kuota_harian']);
-        $sisa = max(0, $data_kuota['sisa_kuota']);
-        $persen = round(($sisa / $total_kuota) * 100);
-        $warna = ($persen > 60) ? '#4caf50' : (($persen > 30) ? '#fbc02d' : '#e53935');
-    ?>
-    <div class="result-card">
-        <h3><?= htmlspecialchars($data_kuota['nama_jalur']); ?></h3>
-        <div class="deskripsi"><?= nl2br(htmlspecialchars($deskripsi)); ?></div>
-        <p><strong>Kuota Tersisa:</strong> <?= $sisa ?> / <?= $total_kuota; ?></p>
-        <div class="progress-container">
-            <div class="progress-bar" style="width: <?= $persen; ?>%; background: <?= $warna; ?>;"></div>
-        </div>
-        <p><strong>Tarif per Orang:</strong> Rp<?= number_format($data_kuota['tarif_tiket'], 0, ',', '.'); ?></p>
-        <p><strong>Total Bayar:</strong> <span class="total">Rp<?= number_format($total_harga, 0, ',', '.'); ?></span></p>
-        <form action="booking.php" method="POST" style="margin-top:20px; text-align:right;">
-            <input type="hidden" name="id_pendakian" value="<?= $_SESSION['selected_pendakian']; ?>">
-            <input type="hidden" name="jumlah_pendaki" value="<?= htmlspecialchars($jumlah_pendaki); ?>">
-            <button type="submit" class="btn">Lanjut Booking ➜</button>
-        </form>
-    </div>
-    <?php endif; ?>
+    <div id="resultArea"></div>
 </div>
 
 <footer>
     &copy; 2025 Tahura Raden Soerjo. All Rights Reserved.
 </footer>
+
+<script>
+(function(){
+    const jalurEl = document.getElementById('jalur_id');
+    const jumlahEl = document.getElementById('jumlah_pendaki');
+    const naikEl = document.getElementById('tanggal_naik');
+    const turunEl = document.getElementById('tanggal_turun');
+    const resultArea = document.getElementById('resultArea');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // Set min tanggal naik
+    const today = new Date();
+    const pad = d => d.toString().padStart(2,'0');
+    const yyyy = today.getFullYear();
+    const mm = pad(today.getMonth()+1);
+    const dd = pad(today.getDate());
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+    naikEl.setAttribute('min', todayStr);
+
+    // Jika tanggal naik berubah → atur tanggal turun
+    naikEl.addEventListener('change', () => {
+        if (naikEl.value) {
+            turunEl.setAttribute('min', naikEl.value);
+            if (turunEl.value && turunEl.value < naikEl.value) {
+                turunEl.value = naikEl.value;
+            }
+        } else {
+            turunEl.removeAttribute('min');
+        }
+        triggerFetch();
+    });
+
+    turunEl.addEventListener('change', () => triggerFetch());
+
+    // Jalur change → minimal pendaki update
+    jalurEl.addEventListener('change', () => {
+        const selText = jalurEl.options[jalurEl.selectedIndex]?.text || '';
+        const note = document.getElementById('jalurNote');
+
+        if (selText.toLowerCase().includes('kalibaru')) {
+            note.innerHTML = 'Catatan: Kalibaru minimal 6 orang (Guide wajib).';
+            jumlahEl.min = 6;
+        } else if (selText.toLowerCase().includes('sumberwringin')) {
+            note.innerHTML = 'Catatan: Sumberwringin minimal 2 orang.';
+            jumlahEl.min = 2;
+        } else {
+            note.innerHTML = 'Catatan: Isi data lengkap untuk melihat kuota dan tarif.';
+            jumlahEl.min = 1;
+        }
+        triggerFetch();
+    });
+
+    jumlahEl.addEventListener('input', () => triggerFetch());
+
+    // Tombol reset
+    resetBtn.addEventListener('click', () => {
+        jalurEl.value = '';
+        jumlahEl.value = '';
+        naikEl.value = '';
+        turunEl.value = '';
+        turunEl.removeAttribute('min');
+        resultArea.innerHTML = '';
+    });
+
+    // Debounce
+    let debounceTimer = null;
+    function triggerFetch() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fetchKuota, 350);
+    }
+
+    async function fetchKuota() {
+        const jalur_id = jalurEl.value;
+        const tanggal_naik = naikEl.value;
+        const tanggal_turun = turunEl.value;
+        const jumlah_pendaki = jumlahEl.value ? parseInt(jumlahEl.value) : 0;
+
+        if (!jalur_id || !tanggal_naik || !tanggal_turun || !jumlah_pendaki) {
+            resultArea.innerHTML = '';
+            return;
+        }
+
+        // Loading
+        resultArea.innerHTML = `
+            <div class="result-card">
+                <h3>Memeriksa kuota...</h3>
+                <p class="small">Mohon tunggu...</p>
+            </div>
+        `;
+
+        const formData = new FormData();
+        formData.append('action','fetch');
+        formData.append('jalur_id', jalur_id);
+        formData.append('tanggal_naik', tanggal_naik);
+        formData.append('tanggal_turun', tanggal_turun);
+        formData.append('jumlah_pendaki', jumlah_pendaki);
+
+        try {
+            const res = await fetch('', { method:'POST', body:formData });
+            const data = await res.json();
+
+            if (!data.success) {
+                const err = data.errors?.length ? data.errors[0] : 'Gagal memeriksa kuota';
+                resultArea.innerHTML = `
+                    <div class="result-card">
+                        <h3>Validasi Gagal</h3>
+                        <p class="small">${escapeHtml(err)}</p>
+                    </div>
+                `;
+                Swal.fire('Error', err, 'error');
+                return;
+            }
+
+            const d = data.data;
+
+            // Safety values
+            const namaJalur = escapeHtml(d.nama_jalur || '');
+            const deskripsi = escapeHtml(d.deskripsi || '');
+            const sisa = d.sisa ?? 0;
+            const kuota = d.kuota_harian ?? 0;
+            const persen = d.persen ?? 0;
+            const warna = d.warna || '#4caf50';
+            const tarif = numberFormat(d.tarif || 0);
+            const total = numberFormat(d.total_harga || 0);
+            const pendakianID = d.pendakian_id ?? '';
+            const minReq = d.min_required ?? null;
+
+            // Form booking
+            const bookingForm = `
+                <form method="POST" style="display:inline;">
+                    <input type="hidden" name="action" value="confirm">
+                    <input type="hidden" name="pendakian_id" value="${pendakianID}">
+                    <input type="hidden" name="jalur_id" value="${jalur_id}">
+                    <input type="hidden" name="jumlah_pendaki" value="${jumlah_pendaki}">
+                    <input type="hidden" name="tanggal_naik" value="${tanggal_naik}">
+                    <input type="hidden" name="tanggal_turun" value="${tanggal_turun}">
+                    <button type="submit" class="btn" ${sisa < jumlah_pendaki ? 'disabled' : ''}>
+                        Lanjut Booking ➜
+                    </button>
+                </form>
+            `;
+
+            const catatan = `
+                ${minReq ? 'Minimal ' + minReq + ' orang untuk jalur ini.' : ''}
+                ${sisa < jumlah_pendaki ? '<br><span style="color:#e53935">Kuota tidak mencukupi.</span>' : ''}
+            `;
+
+            // Render final card
+            resultArea.innerHTML = `
+                <div class="result-card">
+                    <h3>${namaJalur}</h3>
+                    <div class="deskripsi">${deskripsi}</div>
+                    <p><strong>Kuota Tersisa:</strong> ${sisa} / ${kuota}</p>
+
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width:${persen}%; background:${warna};"></div>
+                    </div>
+
+                    <p><strong>Tarif per Orang:</strong> Rp${tarif}</p>
+                    <p><strong>Total Bayar:</strong> <span class="total">Rp${total}</span></p>
+
+                    <div style="text-align:right; margin-top:18px;">
+                        ${bookingForm}
+                    </div>
+
+                    <div class="note small" style="margin-top:12px;">
+                        <strong>Catatan:</strong> ${catatan}
+                    </div>
+                </div>
+            `;
+
+        } catch (err) {
+            console.error(err);
+            resultArea.innerHTML = `
+                <div class="result-card">
+                    <h3>Error</h3>
+                    <p class="small">Terjadi kesalahan saat memeriksa kuota.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Format number
+    function numberFormat(n) {
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,".");
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>"'`=\/]/g, s =>
+            ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'}[s])
+        );
+    }
+
+    // Auto fetch jika session masih ada
+    if (jalurEl.value && jumlahEl.value && naikEl.value && turunEl.value) {
+        triggerFetch();
+    }
+})();
+</script>
 </body>
 </html>

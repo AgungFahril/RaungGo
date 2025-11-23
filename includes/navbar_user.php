@@ -53,39 +53,26 @@ $namaUser = $_SESSION['nama'] ?? 'Pendaki';
 ">
     <a href="<?= $basePath ?>index.php" class="nav-brand" style="font-weight:700;color:white;text-decoration:none;">Tahura Raden Soerjo</a>
     <ul class="nav-menu" style="list-style:none;display:flex;gap:15px;margin:0;padding:0;align-items:center;">
-        <li><a href="<?= $basePath ?>index.php" style="color:white;text-decoration:none;">Beranda</a></li>
-        <li><a href="<?= $basePath ?>pengunjung/sop.php" style="color:white;text-decoration:none;">SOP Pendaki</a></li>
-        <li><a href="<?= $basePath ?>PanduanBooking.php" style="color:white;text-decoration:none;">Panduan Booking</a></li>
-        <li><a href="<?= $basePath ?>PanduanPembayaran.php" style="color:white;text-decoration:none;">Panduan Pembayaran</a></li>
-        <li><a href="<?= $basePath ?>StatusBooking.php" style="color:white;text-decoration:none;">Status Booking</a></li>
+    <li><a href="<?= $basePath ?>index.php" style="color:white;text-decoration:none;">Beranda</a></li>
+    <li><a href="<?= $basePath ?>pengunjung/sop.php" style="color:white;text-decoration:none;">SOP Pendaki</a></li>
+    <li><a href="<?= $basePath ?>PanduanBooking.php" style="color:white;text-decoration:none;">Panduan Booking</a></li>
+    <li><a href="<?= $basePath ?>PanduanPembayaran.php" style="color:white;text-decoration:none;">Panduan Pembayaran</a></li>
 
-        <!-- 🔘 Tombol Booking -->
-        <li>
-            <?php if (empty($_SESSION['user_id'])): ?>
-                <a href="<?= $basePath ?>login.php?redirect=pengunjung/lengkapi_data.php" style="color:#fff;background:#43a047;padding:6px 12px;border-radius:6px;text-decoration:none;">Booking</a>
-            <?php elseif ($harusLengkapiData): ?>
-                <a href="<?= $basePath ?>pengunjung/lengkapi_data.php" onclick="alert('Lengkapi data diri terlebih dahulu sebelum booking!')" style="color:#fff;background:#fbc02d;padding:6px 12px;border-radius:6px;text-decoration:none;">Lengkapi Data</a>
-            <?php elseif (empty($_SESSION['setuju_sop']) || $_SESSION['setuju_sop'] !== true): ?>
-                <a href="<?= $basePath ?>pengunjung/sop.php" style="color:#fff;background:#1e88e5;padding:6px 12px;border-radius:6px;text-decoration:none;">Setujui SOP</a>
-            <?php else: ?>
-                <a href="<?= $basePath ?>pengunjung/kuota.php" style="color:#fff;background:#43a047;padding:6px 12px;border-radius:6px;text-decoration:none;">Booking</a>
-            <?php endif; ?>
-        </li>
-
-        <!-- 👤 Menu Login / Dashboard -->
-        <?php if (!empty($_SESSION['user_id'])): ?>
-            <?php if ($role === 'admin'): ?>
-                <li><a href="<?= $basePath ?>admin/dashboard.php" style="color:white;text-decoration:none;">Dashboard</a></li>
-            <?php else: ?>
-                <li><a href="<?= $basePath ?>pengunjung/dashboard.php" style="color:white;text-decoration:none;">Dashboard</a></li>
-            <?php endif; ?>
-
-            <li><a href="<?= $basePath ?>backend/logout.php" style="color:#fff;background:#e53935;padding:6px 12px;border-radius:6px;text-decoration:none;">Logout</a></li>
-            <li><span style="font-weight:600;">👋 Halo, <?= htmlspecialchars($namaUser); ?></span></li>
+    <!-- 👤 Menu Login / Dashboard -->
+    <?php if (!empty($_SESSION['user_id'])): ?>
+        <?php if ($role === 'admin'): ?>
+            <li><a href="<?= $basePath ?>admin/dashboard.php" style="color:white;text-decoration:none;">Dashboard</a></li>
         <?php else: ?>
-            <li><a href="<?= $basePath ?>login.php" style="color:#fff;background:#1e88e5;padding:6px 12px;border-radius:6px;text-decoration:none;">Login</a></li>
+            <li><a href="<?= $basePath ?>pengunjung/dashboard.php" style="color:white;text-decoration:none;">Dashboard</a></li>
         <?php endif; ?>
-    </ul>
+
+        <li><a href="<?= $basePath ?>backend/logout.php" style="color:#fff;background:#e53935;padding:6px 12px;border-radius:6px;text-decoration:none;">Logout</a></li>
+        <li><span style="font-weight:600;">👋 Halo, <?= htmlspecialchars($namaUser); ?></span></li>
+    <?php else: ?>
+        <li><a href="<?= $basePath ?>login.php" style="color:#fff;background:#1e88e5;padding:6px 12px;border-radius:6px;text-decoration:none;">Login</a></li>
+    <?php endif; ?>
+</ul>
+
 </nav>
 
 <!-- 🧩 Tambahkan jarak agar konten tidak tertutup navbar -->
