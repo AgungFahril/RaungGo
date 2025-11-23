@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.html");
@@ -24,6 +24,21 @@ $user_foto = $res->fetch_assoc();
 $foto_profil = $user_foto['foto_profil'] ?? null;
 $stmt->close();
 
+<<<<<<< HEAD
+=======
+// Ambil data profil lengkap untuk modal
+$stmt_profil = $conn->prepare("
+    SELECT u.nama, u.email, u.foto_profil, p.nik, p.alamat, p.no_hp, p.provinsi, p.kabupaten, p.kecamatan
+    FROM users u
+    LEFT JOIN pendaki_detail p ON u.user_id = p.user_id
+    WHERE u.user_id = ?
+");
+$stmt_profil->bind_param("i", $user_id);
+$stmt_profil->execute();
+$profil_data = $stmt_profil->get_result()->fetch_assoc();
+$stmt_profil->close();
+
+>>>>>>> alsii
 // Statistik
 $total_transaksi = $transaksi_sukses = $transaksi_pending = $transaksi_batal = 0;
 
@@ -63,6 +78,10 @@ try {
 /* ANIMATIONS */
 @keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
 @keyframes slideIn{from{transform:translateX(-50px);opacity:0}to{transform:none;opacity:1}}
+<<<<<<< HEAD
+=======
+@keyframes slideInUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+>>>>>>> alsii
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 
 /* BODY */
@@ -221,6 +240,314 @@ body{
     .main-content{margin-left:0;padding:25px}
     .stats-grid{grid-template-columns:1fr;gap:20px}
 }
+<<<<<<< HEAD
+=======
+
+/* MODAL PROFIL */
+.modal{
+    display:none;
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.7);
+    z-index:2000;
+    animation:fadeIn .3s ease;
+    align-items:center;
+    justify-content:center;
+    backdrop-filter:blur(4px);
+}
+.modal.active{display:flex}
+.modal-content{
+    background:#fff;
+    border-radius:24px;
+    padding:0;
+    max-width:650px;
+    width:95%;
+    max-height:90vh;
+    overflow:hidden;
+    box-shadow:0 25px 50px rgba(0,0,0,0.3);
+    animation:slideInUp .3s ease;
+    border:2px solid #2e7d32;
+}
+.modal-header{
+    background:linear-gradient(135deg,#2e7d32,#1b5e20);
+    padding:30px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:#fff;
+    position:relative;
+}
+.modal-header::after{
+    content:'';
+    position:absolute;
+    right:-50px;
+    top:-50px;
+    width:200px;
+    height:200px;
+    background:radial-gradient(circle,rgba(255,255,255,0.1),transparent);
+    border-radius:50%;
+}
+.modal-header h2{font-size:28px;font-weight:700;position:relative;z-index:1}
+.modal-close{
+    background:rgba(255,255,255,0.2);
+    border:none;
+    font-size:28px;
+    cursor:pointer;
+    color:#fff;
+    transition:all .3s;
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    z-index:1;
+}
+.modal-close:hover{background:rgba(255,255,255,0.3);transform:rotate(90deg)}
+
+.profile-section{
+    padding:40px;
+    overflow-y:auto;
+    max-height:calc(90vh - 100px);
+}
+
+.profile-photo{
+    text-align:center;
+    margin-bottom:30px;
+}
+.profile-photo img{
+    width:160px;
+    height:160px;
+    border-radius:50%;
+    border:6px solid #2e7d32;
+    object-fit:cover;
+    box-shadow:0 10px 30px rgba(46,125,50,0.3);
+    transition:all .3s;
+}
+.profile-photo img:hover{transform:scale(1.05);box-shadow:0 15px 40px rgba(46,125,50,0.4)}
+.profile-photo .avatar-fallback{
+    width:160px;
+    height:160px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#2e7d32,#1b5e20);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:70px;
+    color:#fff;
+    font-weight:bold;
+    border:6px solid #2e7d32;
+    box-shadow:0 10px 30px rgba(46,125,50,0.3);
+    margin:0 auto;
+}
+
+.profile-info{
+    background:linear-gradient(135deg,#f8fbf7 0%,#eef5eb 100%);
+    border-radius:16px;
+    padding:30px;
+    border:2px solid rgba(46,125,50,0.1);
+    margin-bottom:20px;
+}
+.profile-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:16px 0;
+    border-bottom:1px solid rgba(46,125,50,0.15);
+    transition:all .2s;
+}
+.profile-item:last-child{border-bottom:none}
+.profile-item:hover{background:rgba(46,125,50,0.05);padding:16px 12px;border-radius:8px;margin:0 -12px}
+.profile-label{
+    color:#2e7d32;
+    font-weight:700;
+    min-width:130px;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.profile-value{
+    color:#333;
+    font-weight:600;
+    text-align:right;
+    flex:1;
+    word-break:break-word;
+    font-size:15px;
+}
+.profile-value.empty{color:#999;font-style:italic;font-weight:400}
+
+.modal-footer{
+    padding:25px 40px;
+    background:#f8fbf7;
+    border-top:1px solid rgba(46,125,50,0.1);
+    display:flex;
+    gap:12px;
+    justify-content:flex-end;
+}
+.btn-edit,.btn-close{
+    padding:12px 28px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    font-weight:600;
+    transition:all .3s;
+    font-size:14px;
+}
+.btn-edit{
+    background:linear-gradient(135deg,#2e7d32,#1b5e20);
+    color:#fff;
+    box-shadow:0 4px 15px rgba(46,125,50,0.2);
+}
+.btn-edit:hover{
+    background:linear-gradient(135deg,#1b5e20,#0d3d1a);
+    transform:translateY(-2px);
+    box-shadow:0 6px 25px rgba(46,125,50,0.3);
+}
+.btn-close{
+    background:#e8e8e8;
+    color:#333;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+.btn-close:hover{background:#d8d8d8;transform:translateY(-2px)}
+
+@keyframes slideInUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+
+/* PROFIL CARD */
+.profile-card{
+    background:#fff;
+    border-radius:16px;
+    padding:0;
+    box-shadow:0 8px 25px rgba(0,0,0,0.1);
+    margin-bottom:40px;
+    overflow:hidden;
+    animation:slideInUp .5s ease;
+    display:grid;
+    grid-template-columns:280px 1fr;
+    border:2px solid rgba(46,125,50,0.1);
+    transition:all .3s;
+}
+.profile-card:hover{box-shadow:0 12px 35px rgba(46,125,50,0.15)}
+
+.profile-card-photo{
+    background:linear-gradient(135deg,#2e7d32,#1b5e20);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px;
+    min-height:300px;
+}
+.profile-card-photo img{
+    width:200px;
+    height:200px;
+    border-radius:50%;
+    border:6px solid white;
+    object-fit:cover;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+.profile-card-photo .avatar-fallback{
+    width:200px;
+    height:200px;
+    border-radius:50%;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:100px;
+    color:#2e7d32;
+    font-weight:bold;
+    border:6px solid white;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+.profile-card-info{
+    padding:40px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+.profile-card-name{
+    font-size:32px;
+    font-weight:700;
+    color:#2e7d32;
+    margin-bottom:5px;
+}
+.profile-card-email{
+    color:#666;
+    font-size:14px;
+    margin-bottom:25px;
+}
+.profile-card-details{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin-bottom:20px;
+}
+.detail-item{
+    background:#f8fbf7;
+    padding:16px;
+    border-radius:10px;
+    border-left:4px solid #2e7d32;
+}
+.detail-item-label{
+    color:#2e7d32;
+    font-weight:700;
+    font-size:12px;
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-bottom:6px;
+}
+.detail-item-value{
+    color:#333;
+    font-weight:600;
+    font-size:15px;
+    word-break:break-word;
+}
+.detail-item-value.empty{
+    color:#999;
+    font-style:italic;
+    font-weight:400;
+}
+
+.profile-card-actions{
+    display:flex;
+    gap:12px;
+}
+.btn-profile-edit{
+    flex:1;
+    background:linear-gradient(135deg,#2e7d32,#1b5e20);
+    color:#fff;
+    border:none;
+    padding:12px 20px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all .3s;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+.btn-profile-edit:hover{
+    background:linear-gradient(135deg,#1b5e20,#0d3d1a);
+    transform:translateY(-2px);
+    box-shadow:0 6px 20px rgba(46,125,50,0.3);
+}
+
+@media(max-width:1000px){
+    .profile-card{grid-template-columns:1fr}
+    .profile-card-photo{min-height:200px}
+    .profile-card-photo img,
+    .profile-card-photo .avatar-fallback{width:150px;height:150px;font-size:75px}
+    .profile-card-details{grid-template-columns:1fr}
+}
+
+>>>>>>> alsii
 </style>
 </head>
 <body>
@@ -228,7 +555,11 @@ body{
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div>
+<<<<<<< HEAD
             <div class="sidebar-header">
+=======
+            <div class="sidebar-header" onclick="openProfilModal()" style="cursor:pointer;transition:.3s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background=''">
+>>>>>>> alsii
                 <div class="user-avatar">
                     <?php if (!empty($foto_profil) && file_exists("../uploads/profil/$foto_profil")): ?>
                         <img src="../uploads/profil/<?php echo htmlspecialchars($foto_profil); ?>" alt="Profil">
@@ -243,13 +574,22 @@ body{
             </div>
 
             <nav class="sidebar-nav">
+<<<<<<< HEAD
                 <a href="dashboard.php" class="nav-item active">🏠 Dashboard</a>
                 <a href="edit_profil.php" class="nav-item">👤 Edit Profil</a>
+=======
+                <a href="profil.php" class="nav-item">👤 Profil Pribadi</a>
+                <a href="edit_profil.php" class="nav-item">✏️ Edit Profil</a>
+>>>>>>> alsii
                 <a href="booking.php" class="nav-item">📅 Booking</a>
                 <a href="../pengunjung/dashboard.php?tab=transaksi" class="nav-item">📊 Transaksi</a>
             </nav>
         </div>
+<<<<<<< HEAD
         <a href="../backend/logout.php" class="nav-item" style="border-top:1px solid rgba(255,255,255,0.15)">🚪 Logout</a>
+=======
+        <a href="../backend/logout.php" class="nav-item" style="border-top:1px solid rgba(255,255,255,0.15); background:#e53935; margin-top:auto;">🚪 Logout</a>
+>>>>>>> alsii
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -302,8 +642,82 @@ body{
                 Pastikan semua data Anda akurat untuk pengalaman booking yang lancar.
             </p>
             <a href="../index.php" class="home-button">🏠 Kembali ke Halaman Utama</a>
+<<<<<<< HEAD
         </div>
     </main>
 </div>
+=======
+        </div>
+    </main>
+</div>
+
+<!-- MODAL PROFIL -->
+<div id="profilModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>👤 Profil Pribadi</h2>
+            <button class="modal-close" onclick="closeProfilModal()">&times;</button>
+        </div>
+
+        <div class="profile-section">
+            <div class="profile-photo">
+                <?php if (!empty($profil_data['foto_profil']) && file_exists("../uploads/profil/{$profil_data['foto_profil']}")): ?>
+                    <img src="../uploads/profil/<?php echo htmlspecialchars($profil_data['foto_profil']); ?>" alt="Foto Profil">
+                <?php else: ?>
+                    <div class="avatar-fallback"><?php echo strtoupper(substr($profil_data['nama'], 0, 1)); ?></div>
+                <?php endif; ?>
+            </div>
+
+            <div class="profile-info">
+                <div class="profile-item">
+                    <span class="profile-label">👤 Nama</span>
+                    <span class="profile-value"><?php echo htmlspecialchars($profil_data['nama'] ?? '-'); ?></span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">📧 Email</span>
+                    <span class="profile-value"><?php echo htmlspecialchars($profil_data['email'] ?? '-'); ?></span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">🆔 NIK</span>
+                    <span class="profile-value"><?php echo htmlspecialchars($profil_data['nik'] ?? '-'); ?></span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">📍 Alamat</span>
+                    <span class="profile-value"><?php echo htmlspecialchars($profil_data['alamat'] ?? '-'); ?></span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">📱 No. HP</span>
+                    <span class="profile-value"><?php echo htmlspecialchars($profil_data['no_hp'] ?? '-'); ?></span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">🏘️ Kota</span>
+                    <span class="profile-value"><?php echo htmlspecialchars($profil_data['kabupaten'] ?? '-'); ?></span>
+                </div>
+                <div class="profile-item">
+                    <span class="profile-label">🗺️ Provinsi</span>
+                    <span class="profile-value"><?php echo htmlspecialchars($profil_data['provinsi'] ?? '-'); ?></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <a href="edit_profil.php" class="btn-edit">✏️ Edit Profil</a>
+            <button class="btn-close" onclick="closeProfilModal()">Tutup</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openProfilModal(){document.getElementById('profilModal').classList.add('active')}
+function closeProfilModal(){document.getElementById('profilModal').classList.remove('active')}
+document.addEventListener('click',e=>{
+    const modal=document.getElementById('profilModal');
+    if(e.target===modal)closeProfilModal()
+})
+document.addEventListener('keydown',e=>{
+    if(e.key==='Escape')closeProfilModal()
+})
+</script>
+>>>>>>> alsii
 </body>
 </html>

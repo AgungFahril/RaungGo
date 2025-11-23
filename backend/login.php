@@ -74,11 +74,10 @@ if (isset($_POST['login'])) {
         }
     } else {
         $_SESSION['login_error'] = 'Email tidak terdaftar!';
+        $stmt->close();
         header('Location: ../login.php');
         exit;
     }
-
-    $stmt->close();
 } else {
     header("Location: ../login.php");
     exit;

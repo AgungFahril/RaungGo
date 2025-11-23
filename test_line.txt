@@ -1,0 +1,1 @@
+<?php $sn = isset($_SESSION[nama]) ? $_SESSION[nama] : 'User'; echo htmlspecialchars($sn); ?>
