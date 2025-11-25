@@ -9,6 +9,8 @@ error_reporting(E_ALL);
 session_start();
 include '../backend/koneksi.php';
 
+$logFile = "../backend/error_upload.txt";
+
 // --- Ambil pesanan_id dari URL
 $pesanan_id = $_GET['pesanan_id'] ?? null;
 if (!$pesanan_id) {
@@ -43,7 +45,6 @@ if (in_array($pesanan['status_pesanan'], ['menunggu_konfirmasi', 'lunas', 'dibat
 // --- Jika form disubmit (upload bukti pembayaran)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_bukti'])) {
     try {
-        // Backend TIDAK mengambil jumlah bayar dari input user → langsung dari database
         $jumlah_bayar = intval($pesanan['total_bayar']);
         $tanggal_bayar = date('Y-m-d H:i:s');
         $metode = 'transfer_bank';
@@ -53,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_bukti'])) {
             throw new Exception("Silakan unggah file bukti pembayaran terlebih dahulu.");
         }
 
+        // Folder upload
         $target_dir = "../uploads/bukti/";
         if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
 
@@ -69,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_bukti'])) {
             throw new Exception("Gagal menyimpan file bukti pembayaran ke server.");
         }
 
-        // --- Simpan pembayaran
+        // Simpan pembayaran
         $stmt = $conn->prepare("
             INSERT INTO pembayaran (pesanan_id, metode, jumlah_bayar, tanggal_bayar, bukti_bayar, status_pembayaran)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -78,16 +80,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_bukti'])) {
         $stmt->execute();
         $stmt->close();
 
-        // --- Update status pesanan
+        // Update status pesanan
         $conn->query("UPDATE pesanan SET status_pesanan='menunggu_konfirmasi' WHERE pesanan_id=$pesanan_id");
 
         $_SESSION['success_message'] = "Bukti pembayaran berhasil dikirim!";
-        header("Location: detail_transaksi.php?pesanan_id=" . $pesanan_id);
+
+        // Redirect aman
+        header("Location: detail_transaksi.php?pesanan_id={$pesanan_id}");
+        echo "<script>window.location.href='detail_transaksi.php?pesanan_id={$pesanan_id}';</script>";
         exit;
 
     } catch (Exception $e) {
+
+        // Simpan log error
+        file_put_contents($logFile, "[" . date('Y-m-d H:i:s') . "] " . $e->getMessage() . "\n", FILE_APPEND);
+
         $_SESSION['error_message'] = $e->getMessage();
-        header("Location: detail_transaksi.php?pesanan_id=" . $pesanan_id);
+
+        header("Location: detail_transaksi.php?pesanan_id={$pesanan_id}");
+        echo "<script>window.location.href='detail_transaksi.php?pesanan_id={$pesanan_id}';</script>";
         exit;
     }
 }
@@ -116,7 +127,12 @@ body {
     padding: 30px 40px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
 }
-h2 { text-align: center; color: #2e7d32; margin-bottom: 25px; font-weight: 700; }
+h2 { 
+    text-align: center; 
+    color: #2e7d32; 
+    margin-bottom: 25px; 
+    font-weight: 700; 
+}
 .rekening-box {
     background: #fffde7;
     border: 1px solid #fff59d;
@@ -143,13 +159,6 @@ input, input[type=file] {
     cursor: pointer;
 }
 .btn:hover { background: #2e7d32; }
-.btn-danger {
-    background: #d32f2f;
-    margin-top: 10px;
-}
-.btn-danger:hover {
-    background: #b71c1c;
-}
 </style>
 </head>
 <body>
@@ -174,7 +183,6 @@ input, input[type=file] {
         <p>Atas Nama: <b>Agung Fahril Gunawan</b></p>
     </div>
 
-   <!-- ❌ Jika status bukan 'menunggu_pembayaran', tidak boleh bayar -->
 <?php if ($pesanan['status_pesanan'] !== 'menunggu_pembayaran'): ?>
     <script>
         Swal.fire(
@@ -185,14 +193,13 @@ input, input[type=file] {
             window.location = 'detail_transaksi.php?pesanan_id=<?= intval($pesanan_id) ?>';
         });
     </script>
-<?php
-    exit;
-endif;
-?>
+<?php exit; endif; ?>
+
     <form method="POST" enctype="multipart/form-data" id="formBayar">
+        <input type="hidden" name="upload_bukti" value="1">
+
         <label>Jumlah Bayar (Rp)</label>
         <input type="text" value="Rp <?= number_format($pesanan['total_bayar'], 0, ',', '.'); ?>" readonly>
-        <input type="hidden" name="jumlah_bayar" value="<?= $pesanan['total_bayar']; ?>">
 
         <label>Upload Bukti Pembayaran</label>
         <input type="file" name="bukti_bayar" accept=".jpg,.jpeg,.png,.pdf" required>
@@ -200,25 +207,17 @@ endif;
         <button type="button" class="btn" onclick="konfirmasiBayar()">Kirim Bukti Pembayaran</button>
     </form>
 
-    <br>
-
-    <!-- TOMBOL BATALKAN PESANAN -->
     <button class="btn" style="background:#d32f2f" onclick="batalkanPesanan()">Batalkan Pesanan</button>
 </main>
 
 <script>
-// ===============================
-// Validasi sebelum bayar
-// ===============================
 function konfirmasiBayar() {
     Swal.fire({
         icon: 'question',
         title: 'Kirim Bukti Pembayaran?',
         text: 'Pastikan jumlah dan file bukti sudah benar.',
         showCancelButton: true,
-        confirmButtonColor: '#2e7d32',
-        cancelButtonColor: '#888',
-        confirmButtonText: 'Ya, kirim!'
+        confirmButtonColor: '#2e7d32'
     }).then((res) => {
         if (res.isConfirmed) {
             document.getElementById('formBayar').submit();
@@ -226,18 +225,13 @@ function konfirmasiBayar() {
     });
 }
 
-// ===============================
-// Tombol batal dengan validasi
-// ===============================
 function batalkanPesanan() {
     Swal.fire({
         icon: 'warning',
         title: 'Batalkan Pesanan?',
-        text: 'Jika dibatalkan, kuota akan dikembalikan dan booking ini tidak bisa dipulihkan.',
+        text: 'Booking ini tidak bisa dipulihkan.',
         showCancelButton: true,
-        confirmButtonColor: '#d32f2f',
-        cancelButtonColor: '#888',
-        confirmButtonText: 'Ya, batalkan!'
+        confirmButtonColor: '#d32f2f'
     }).then((res) => {
         if (res.isConfirmed) {
             window.location = '../backend/proses_batal.php?pesanan_id=<?= $pesanan_id ?>';
@@ -245,6 +239,7 @@ function batalkanPesanan() {
     });
 }
 </script>
+
 <footer style="text-align:center; padding:20px; color:#555;">
     &copy; 2025 Tahura Raden Soerjo
 </footer>
