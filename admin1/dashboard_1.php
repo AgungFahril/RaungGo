@@ -37,10 +37,10 @@ document.addEventListener("DOMContentLoaded", () => {
       options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { labels:{ color:"black" } } },
+          plugins: { legend: { labels:{ color:"white" } } },
           scales: {
-              x: { ticks:{ color:"black" } },
-              y: { ticks:{ color:"black" } }
+              x: { ticks:{ color:"white" } },
+              y: { ticks:{ color:"white" } }
           }
       }
   });
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
 <div class="container-fluid mt-3">
 
 <?php
-// Load database stats
+
 $q1 = mysqli_query($conn, "SELECT COUNT(*) AS total FROM jalur_pendakian");
 $d1 = mysqli_fetch_assoc($q1);
 
@@ -216,7 +216,7 @@ $pendapatan = $d4['total'] ? number_format($d4['total'],0,',','.') : "0";
   <table class="search-table" id="resultTable">
     <thead>
       <tr>
-        <th>#</th>
+       
         <th>Kode</th>
         <th>Pemesan</th>
         <th>Jalur</th>
