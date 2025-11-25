@@ -89,10 +89,6 @@
         <i class="fa-solid fa-table-columns"></i> Dashboard
     </a>
 
-    <a href="data_pendaki.php" class="menu-item">
-        <i class="fa-solid fa-users"></i> Data Pendaki
-    </a>
-
     <a href="pesanan.php" class="menu-item">
         <i class="fa-solid fa-file-invoice"></i> Pesanan
     </a>
@@ -108,8 +104,5 @@
    <a href="jalur_pendakian.php" class="menu-item">
     <i class="fa-solid fa-map-location-dot"></i> Data Jalur
 </a>
-    <a href="rekap_transaksi.php" class="menu-item">
-        <i class="fa-solid fa-chart-column"></i> Rekap Transaksi
-    </a>
-
+   
 </div>

@@ -44,9 +44,9 @@ include '../backend/koneksi.php';
                 <th>ID Pesanan</th>
                 <th>Nama Ketua</th>
                 <th>Jumlah Pendaki</th>
-                <th>Total Bayar</th>
                 <th>Status</th>
                 <th>Tanggal Pesan</th>
+                <th>Kode Token</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -58,7 +58,7 @@ include '../backend/koneksi.php';
                   $where = "WHERE p.nama_ketua LIKE '%$cari%' OR p.pesanan_id LIKE '%$cari%' OR p.no_identitas LIKE '%$cari%'";
               }
 
-              $q = $conn->query("SELECT p.pesanan_id, p.nama_ketua, p.jumlah_pendaki, p.total_bayar, p.status_pesanan, p.tanggal_pesan
+              $q = $conn->query("SELECT p.pesanan_id, p.nama_ketua, p.jumlah_pendaki, p.status_pesanan, p.tanggal_pesan, p.kode_token
                                  FROM pesanan p $where ORDER BY p.tanggal_pesan DESC");
               if ($q->num_rows > 0) {
                   while ($r = $q->fetch_assoc()) {
@@ -71,13 +71,12 @@ include '../backend/koneksi.php';
                               <td>{$r['pesanan_id']}</td>
                               <td>{$r['nama_ketua']}</td>
                               <td>{$r['jumlah_pendaki']}</td>
-                              <td>Rp " . number_format($r['total_bayar'], 0, ',', '.') . "</td>
                               <td>{$statusBadge}</td>
-                              <td>{$r['tanggal_pesan']}</td>
+                              <td>{$r['tanggal_pesan']}
+                               <td>{$r['kode_token']}</td> 
+                              </td>
                               <td>
-                                <a href='edit_pesanan.php?id={$r['pesanan_id']}' class='btn btn-warning btn-sm'>Edit</a>
                                 <a href='detail_pesanan.php?id={$r['pesanan_id']}' class='btn btn-info btn-sm'>Detail</a>
-                                <a href='hapus_pesanan.php?id={$r['pesanan_id']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Yakin ingin menghapus data ini?\")'>Hapus</a>
                               </td>
                             </tr>";
                   }
