@@ -207,7 +207,7 @@ if (!$profil_data) {
         gap: 10px;
         justify-content: center;
     ">
-        <a href="profil.php" style="
+        <a href="profil_pribadi.php" style="
             display: inline-block;
             background: #2e7d32;
             color: white;

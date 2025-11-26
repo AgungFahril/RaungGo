@@ -12,10 +12,37 @@ if ($_SESSION['role'] != 'pendaki') {
 
 include '../backend/koneksi.php';
 
+// ---------------------------
+// AUTO-EXPIRE: tandai pesanan 'gagal' jika unpaid > 24 jam
+// ---------------------------
+// Pastikan kolom created_at ada di tabel pesanan (Anda sudah menambahkannya)
+try {
+    // Set status menjadi 'gagal' untuk pesanan yang lebih dari 24 jam menunggu pembayaran
+    $sqlExpire = "
+        UPDATE pesanan
+        SET status_pesanan = 'gagal'
+        WHERE status_pesanan = 'menunggu_pembayaran'
+        AND TIMESTAMPDIFF(HOUR, created_at, NOW()) >= 24
+    ";
+    $conn->query($sqlExpire);
+
+    // OPTIONAL: hapus detail anggota yang ter-orphan (jika ada)
+    // (Jika ingin menyimpan histori, jangan jalankan ini)
+    $sqlCleanup = "
+        DELETE pa FROM pesanan_anggota pa
+        LEFT JOIN pesanan p ON p.pesanan_id = pa.pesanan_id
+        WHERE p.pesanan_id IS NULL
+    ";
+    $conn->query($sqlCleanup);
+} catch(Exception $e) {
+    // Log saja, jangan ganggu pengguna
+    // file_put_contents(__DIR__.'/../backend/logs/auto_expire.log', $e->getMessage().PHP_EOL, FILE_APPEND);
+}
+
 // Data user
 $user_id = $_SESSION['user_id'];
 
-// Ambil foto profil
+// Ambil foto profil dan data profil lengkap
 $stmt = $conn->prepare("SELECT foto_profil FROM users WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -23,6 +50,21 @@ $res = $stmt->get_result();
 $user_foto = $res->fetch_assoc();
 $foto_profil = $user_foto['foto_profil'] ?? null;
 $stmt->close();
+
+// Ambil data profil untuk modal
+$profile_data = null;
+$stmt_profile = $conn->prepare("
+    SELECT u.nama, u.email, u.foto_profil, p.nik, p.no_hp, p.alamat, p.kabupaten, 
+           p.provinsi, p.kecamatan, p.kelurahan, p.tempat_lahir, p.tanggal_lahir, 
+           p.jenis_kelamin, p.kewarganegaraan, p.no_darurat, p.hubungan_darurat
+    FROM users u
+    LEFT JOIN pendaki_detail p ON u.user_id = p.user_id
+    WHERE u.user_id = ?
+");
+$stmt_profile->bind_param("i", $user_id);
+$stmt_profile->execute();
+$profile_data = $stmt_profile->get_result()->fetch_assoc();
+$stmt_profile->close();
 
 // Statistik
 $total_transaksi = $transaksi_sukses = $transaksi_pending = $transaksi_batal = 0;
@@ -151,16 +193,7 @@ body{
 .top-bar p{color:#555;font-size:14px}
 
 /* BUTTON */
-.logout-btn{
-    background:#2e7d32;
-    color:#fff;
-    padding:10px 20px;
-    border-radius:8px;
-    text-decoration:none;
-    font-weight:600;
-    transition:all .3s;
-}
-.logout-btn:hover{background:#1b5e20}
+
 
 /* STATS GRID */
 .stats-grid{
@@ -215,6 +248,241 @@ body{
 }
 .home-button:hover{background:#1b5e20}
 
+/* PROFILE CARD */
+.profile-card{
+    display:grid;
+    grid-template-columns:200px 1fr;
+    gap:25px;
+    background:#fff;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom:25px;
+}
+.profile-card-photo{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#2e7d32,#1b5e20);
+    border-radius:12px;
+    min-height:180px;
+    color:#fff;
+    font-size:60px;
+    font-weight:bold;
+}
+.profile-card-photo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:12px;
+}
+.profile-info h3{
+    color:#2e7d32;
+    font-size:24px;
+    margin-bottom:5px;
+}
+.profile-info p{
+    color:#666;
+    font-size:14px;
+    margin:8px 0;
+}
+.profile-info .label{
+    color:#999;
+    font-size:12px;
+    text-transform:uppercase;
+    font-weight:600;
+    margin-top:12px;
+}
+.profile-info a{
+    display:inline-block;
+    margin-top:15px;
+    padding:8px 16px;
+    background:#2e7d32;
+    color:#fff;
+    text-decoration:none;
+    border-radius:6px;
+    font-size:13px;
+    font-weight:600;
+    transition:.3s;
+}
+.profile-info a:hover{background:#1b5e20}
+
+/* PROFILE MODAL */
+.profile-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+.profile-modal.show {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+}
+.profile-modal-content {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+.profile-modal-header {
+    background: linear-gradient(135deg, #2e7d32, #1b5e20);
+    color: white;
+    padding: 25px;
+    text-align: center;
+    border-radius: 15px 15px 0 0;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.profile-modal-title {
+    flex: 1;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.profile-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 32px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    padding: 0;
+}
+.profile-modal-close:hover {
+    opacity: 0.8;
+}
+.profile-modal-body {
+    padding: 30px;
+    text-align: center;
+}
+.profile-modal-photo {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+    border-radius: 15px;
+    background: #43a047;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 4px solid #2e7d32;
+    font-size: 50px;
+    font-weight: bold;
+    color: white;
+}
+.profile-modal-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.profile-modal-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2e7d32;
+    margin-bottom: 15px;
+}
+.profile-modal-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+.profile-modal-contact-item {
+    font-size: 13px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.profile-modal-contact-item.email::before {
+    content: '📧';
+}
+.profile-modal-contact-item.phone::before {
+    content: '📱';
+}
+.profile-modal-info {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 15px;
+    text-align: left;
+}
+.profile-modal-info-item {
+    padding: 12px !important;
+    background: #f5faf5 !important;
+    border-radius: 8px !important;
+}
+.profile-modal-info-label {
+    font-size: 11px !important;
+    color: #2e7d32 !important;
+    text-transform: uppercase !important;
+    font-weight: 700 !important;
+    margin-bottom: 5px !important;
+}
+.profile-modal-info-value {
+    font-size: 13px !important;
+    color: #333 !important;
+    font-weight: 600 !important;
+    word-break: break-word !important;
+}
+.profile-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+.profile-modal-btn {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.profile-modal-btn-detail {
+    background: #2e7d32;
+    color: white;
+}
+.profile-modal-btn-detail:hover {
+    background: #1b5e20;
+}
+.profile-modal-btn-edit {
+    background: #f5faf5;
+    color: #2e7d32;
+    border: 2px solid #e8f5e9;
+}
+.profile-modal-btn-edit:hover {
+    background: #e8f5e9;
+}
+
 /* RESPONSIVE */
 @media(max-width:900px){
     .sidebar{position:relative;width:100%;height:auto}
@@ -228,7 +496,7 @@ body{
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div>
-            <div class="sidebar-header">
+            <div class="sidebar-header" onclick="openProfileModal();" style="cursor:pointer;">
                 <div class="user-avatar">
                     <?php if (!empty($foto_profil) && file_exists("../uploads/profil/$foto_profil")): ?>
                         <img src="../uploads/profil/<?php echo htmlspecialchars($foto_profil); ?>" alt="Profil">
@@ -244,12 +512,13 @@ body{
 
             <nav class="sidebar-nav">
                 <a href="dashboard.php" class="nav-item active">🏠 Dashboard</a>
-                <a href="edit_profil.php" class="nav-item">👤 Edit Profil</a>
+                <a href="profil_pribadi.php" class="nav-item">👤 Profil Pribadi</a>
+                <a href="edit_profil.php" class="nav-item">✏️ Edit Profil</a>
                 <a href="booking.php" class="nav-item">📅 Booking</a>
-                <a href="../pengunjung/dashboard.php?tab=transaksi" class="nav-item">📊 Transaksi</a>
+                <a href="detail_transaksi.php" class="nav-item">📊 Transaksi</a>
             </nav>
         </div>
-        <a href="../backend/logout.php" class="nav-item" style="border-top:1px solid rgba(255,255,255,0.15)">🚪 Logout</a>
+        <a href="../backend/logout.php" class="nav-item" style="border-top:1px solid rgba(255,255,255,0.15);background:#e53935">🚪 Logout</a>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -259,7 +528,6 @@ body{
                 <h1>Dashboard User</h1>
                 <p>Selamat datang, <?php echo htmlspecialchars($_SESSION['nama']); ?>!</p>
             </div>
-            <a href="../backend/logout.php" class="logout-btn">Logout</a>
         </div>
 
         <!-- STATISTICS -->
@@ -305,5 +573,136 @@ body{
         </div>
     </main>
 </div>
+
+<!-- PROFILE MODAL -->
+<div id="profileModal" class="profile-modal" onclick="closeProfileModalOnBg(event)">
+    <div class="profile-modal-content" onclick="event.stopPropagation()">
+        <div class="profile-modal-header">
+            <div class="profile-modal-title">👤 Profil Saya</div>
+            <button class="profile-modal-close" onclick="closeProfileModal()">&times;</button>
+        </div>
+        <div class="profile-modal-body">
+            <!-- Foto Profil -->
+            <div class="profile-modal-photo" id="modalPhotoContainer">
+                <?php echo strtoupper(substr($profile_data['nama'] ?? '', 0, 1)); ?>
+            </div>
+
+            <!-- Nama -->
+            <div class="profile-modal-name"><?php echo htmlspecialchars($profile_data['nama'] ?? ''); ?></div>
+
+            <!-- Kontak -->
+            <div class="profile-modal-contact">
+                <div class="profile-modal-contact-item email"><?php echo htmlspecialchars($profile_data['email'] ?? '-'); ?></div>
+                <div class="profile-modal-contact-item phone"><?php echo htmlspecialchars($profile_data['no_hp'] ?? '-'); ?></div>
+            </div>
+
+            <!-- Informasi Grid -->
+            <div class="profile-modal-info">
+                <?php if (!empty($profile_data['nik'])): ?>
+                <div class="profile-modal-info-item">
+                    <div class="profile-modal-info-label">NIK</div>
+                    <div class="profile-modal-info-value"><?php echo htmlspecialchars($profile_data['nik']); ?></div>
+                </div>
+                <?php endif; ?>
+                
+                <?php if (!empty($profile_data['tempat_lahir'])): ?>
+                <div class="profile-modal-info-item">
+                    <div class="profile-modal-info-label">Tempat Lahir</div>
+                    <div class="profile-modal-info-value"><?php echo htmlspecialchars($profile_data['tempat_lahir']); ?></div>
+                </div>
+                <?php endif; ?>
+                
+                <?php if (!empty($profile_data['tanggal_lahir'])): ?>
+                <div class="profile-modal-info-item">
+                    <div class="profile-modal-info-label">Tgl Lahir</div>
+                    <div class="profile-modal-info-value"><?php echo date('d-m-Y', strtotime($profile_data['tanggal_lahir'])); ?></div>
+                </div>
+                <?php endif; ?>
+                
+                <?php if (!empty($profile_data['jenis_kelamin'])): ?>
+                <div class="profile-modal-info-item">
+                    <div class="profile-modal-info-label">Jenis Kelamin</div>
+                    <div class="profile-modal-info-value"><?php echo htmlspecialchars($profile_data['jenis_kelamin']); ?></div>
+                </div>
+                <?php endif; ?>
+                
+                <?php if (!empty($profile_data['alamat'])): ?>
+                <div class="profile-modal-info-item">
+                    <div class="profile-modal-info-label">Alamat</div>
+                    <div class="profile-modal-info-value"><?php echo htmlspecialchars($profile_data['alamat']); ?></div>
+                </div>
+                <?php endif; ?>
+                
+                <?php if (!empty($profile_data['kabupaten'])): ?>
+                <div class="profile-modal-info-item">
+                    <div class="profile-modal-info-label">Kabupaten</div>
+                    <div class="profile-modal-info-value"><?php echo htmlspecialchars($profile_data['kabupaten']); ?></div>
+                </div>
+                <?php endif; ?>
+                
+                <?php if (!empty($profile_data['provinsi'])): ?>
+                <div class="profile-modal-info-item">
+                    <div class="profile-modal-info-label">Provinsi</div>
+                    <div class="profile-modal-info-value"><?php echo htmlspecialchars($profile_data['provinsi']); ?></div>
+                </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="profile-modal-actions">
+                <button class="profile-modal-btn profile-modal-btn-detail" onclick="goToDetailProfile()">👁 Lihat Detail</button>
+                <button class="profile-modal-btn profile-modal-btn-edit" onclick="goToEditProfile()">✏️ Edit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Ambil foto profil dari PHP
+const fotoProfilPath = '<?php echo !empty($profile_data['foto_profil']) && file_exists("../uploads/profil/" . $profile_data['foto_profil']) ? htmlspecialchars($profile_data['foto_profil']) : ''; ?>';
+
+// Fungsi untuk membuka modal profil
+function openProfileModal() {
+    const modal = document.getElementById('profileModal');
+    modal.classList.add('show');
+    
+    // Set foto profil jika ada
+    const photoContainer = document.getElementById('modalPhotoContainer');
+    if (fotoProfilPath) {
+        photoContainer.innerHTML = '<img src="../uploads/profil/' + fotoProfilPath + '" alt="Profil">';
+    }
+}
+
+// Fungsi untuk menutup modal profil
+function closeProfileModal() {
+    const modal = document.getElementById('profileModal');
+    modal.classList.remove('show');
+}
+
+// Fungsi untuk menutup modal saat klik background
+function closeProfileModalOnBg(event) {
+    if (event.target.id === 'profileModal') {
+        closeProfileModal();
+    }
+}
+
+// Fungsi untuk pergi ke halaman detail profil
+function goToDetailProfile() {
+    window.location.href = 'profil_pribadi.php';
+}
+
+// Fungsi untuk pergi ke halaman edit profil
+function goToEditProfile() {
+    window.location.href = 'edit_profil.php';
+}
+
+// Tutup modal saat tekan tombol ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeProfileModal();
+    }
+});
+</script>
+
 </body>
 </html>

@@ -138,7 +138,7 @@ if (isset($_POST['ubah_password'])) {
     body{background:#f4f6f9;overflow-x:hidden;animation:fadeIn 1s ease}
     @keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
     .dashboard-container{display:flex;min-height:100vh}
-    .sidebar{width:260px;background:linear-gradient(180deg,#16a34a,#15803d);color:#fff;padding:30px 0;box-shadow:3px 0 15px rgba(0,0,0,0.1);position:fixed;height:100vh}
+    .sidebar{width:260px;background:linear-gradient(180deg,#16a34a,#15803d);color:#fff;padding:30px 0;box-shadow:3px 0 15px rgba(0,0,0,0.1);position:fixed;height:100vh;display:flex;flex-direction:column;justify-content:space-between}
     .sidebar-header{display:flex;align-items:center;padding:0 25px 25px;border-bottom:1px solid rgba(255,255,255,0.2)}
     .user-avatar{width:60px;height:60px;border-radius:50%;background:#1e9b52;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;margin-right:15px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.2)}
     .user-avatar img{width:100%;height:100%;object-fit:cover}
@@ -181,34 +181,29 @@ if (isset($_POST['ubah_password'])) {
 <body>
 <div class="dashboard-container">
     <div class="sidebar">
-        <div class="sidebar-header">
-            <div class="user-avatar">
-                <?php if (!empty($user_data['foto_profil']) && file_exists('../uploads/profil/' . $user_data['foto_profil'])): ?>
-                    <img src="/ProjekSemester3/uploads/profil/<?php echo htmlspecialchars($user_data['foto_profil']); ?>" alt="Foto Profil">
-                <?php else: ?>
-                    <?php echo strtoupper(substr($_SESSION['nama'], 0, 1)); ?>
-                <?php endif; ?>
+        <div>
+            <div class="sidebar-header">
+                <div class="user-avatar">
+                    <?php if (!empty($user_data['foto_profil']) && file_exists('../uploads/profil/' . $user_data['foto_profil'])): ?>
+                        <img src="/ProjekSemester3/uploads/profil/<?php echo htmlspecialchars($user_data['foto_profil']); ?>" alt="Foto Profil">
+                    <?php else: ?>
+                        <?php echo strtoupper(substr($_SESSION['nama'], 0, 1)); ?>
+                    <?php endif; ?>
+                </div>
+                <div class="user-info">
+                    <h3><?php echo $_SESSION['nama']; ?></h3>
+                    <div class="user-status">● Online</div>
+                </div>
             </div>
-            <div class="user-info">
-                <h3><?php echo $_SESSION['nama']; ?></h3>
-                <div class="user-status">● Online</div>
+            <div class="sidebar-nav">
+                <a href="dashboard.php" class="nav-item">🏠 Dashboard</a>
+                <a href="profil_pribadi.php" class="nav-item">👤 Profil Pribadi</a>
+                <a href="edit_profil.php" class="nav-item active">✏️ Edit Profil</a>
+                <a href="booking.php" class="nav-item">📅 Booking</a>
+                <a href="detail_transaksi.php" class="nav-item">📊 Transaksi</a>
             </div>
         </div>
-        <div class="sidebar-nav">
-<<<<<<< HEAD
-            <a href="profil.php" class="nav-item">👤 Profil Pribadi</a>
-            <a href="edit_profil.php" class="nav-item active">✏️ Edit Profil</a>
-            <a href="booking.php" class="nav-item">📅 Booking</a>
-            <a href="../pengunjung/dashboard.php?tab=transaksi" class="nav-item">📊 Transaksi</a>
-            <a href="../backend/logout.php" class="nav-item" style="background:#e53935;margin-top:10px;">🚪 Logout</a>
-=======
-            <a href="dashboard.php" class="nav-item">🏠 Dashboard</a>
-            <a href="edit_profil.php" class="nav-item active">👤 Edit Profil</a>
-            <a href="booking.php" class="nav-item">📅 Booking</a>
-            <a href="../pengunjung/dashboard.php?tab=transaksi" class="nav-item">📊 Transaksi</a>
-            <a href="../backend/logout.php" class="nav-item">🚪 Logout</a>
->>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
-        </div>
+        <a href="../backend/logout.php" class="nav-item" style="border-top: 1px solid rgba(255, 255, 255, 0.15); background: #e53935;">🚪 Logout</a>
     </div>
 
     <div class="main-content">
@@ -290,8 +285,4 @@ if (isset($_POST['ubah_password'])) {
     </div>
 </div>
 </body>
-<<<<<<< HEAD
 </html>
-=======
-</html>
->>>>>>> eb398f44a08b98e31566c884da9dd3137fce150b
