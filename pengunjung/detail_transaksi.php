@@ -160,6 +160,42 @@ body{font-family:'Poppins',system-ui,Arial; background:#f5faf5; color:#222; marg
 <div class="container-wrap">
     <div class="header">
         <div class="h-left">
+            <?php if ($pesanan['status_pesanan'] === 'menunggu_pembayaran'): ?>
+    <?php
+        $createdTime = strtotime($pesanan['created_at']);
+        $deadline = $createdTime + (24 * 60 * 60); // 24 jam
+    ?>
+    <div id="countdown-box" style="margin-top:10px; font-weight:600; color:#d32f2f;">
+        <span id="countdown-text">Menghitung waktu...</span>
+    </div>
+
+    <script>
+    var deadline = <?= $deadline * 1000 ?>; // convert to ms
+
+    function updateCountdown() {
+        var now = new Date().getTime();
+        var distance = deadline - now;
+
+        if (distance <= 0) {
+            document.getElementById("countdown-text").innerHTML =
+                "⛔ Waktu pembayaran telah habis — pesanan akan otomatis gagal.";
+            return;
+        }
+
+        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById("countdown-text").innerHTML =
+            "⏳ Sisa waktu pembayaran: " + 
+            hours + " jam " + minutes + " menit " + seconds + " detik";
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+    </script>
+<?php endif; ?>
+
             <div class="h1">🧾 Detail Transaksi Pendakian</div>
             <div class="token">Kode Token: <?= htmlspecialchars($pesanan['kode_token']); ?></div>
             <div class="small">Tanggal Pesan: <?= formatWaktu($pesanan['tanggal_pesan']); ?></div>
