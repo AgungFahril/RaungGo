@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+
   </script>
 
 </head>
@@ -216,7 +217,7 @@ $pendapatan = $d4['total'] ? number_format($d4['total'],0,',','.') : "0";
   <table class="search-table" id="resultTable">
     <thead>
       <tr>
-       
+       <th>No</th>
         <th>Kode</th>
         <th>Pemesan</th>
         <th>Jalur</th>

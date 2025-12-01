@@ -33,7 +33,7 @@ if (isset($_GET['cari']) && $_GET['cari'] != '') {
 
     <div class="container-fluid mt-3">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-success">💰 Pembayaran</h3>
+        <h3 class="fw-bold text-success">Pembayaran</h3>
         <a href="dashboard_1.php" class="btn btn-success">⬅ Kembali ke Dashboard</a>
       </div>
 

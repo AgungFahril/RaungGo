@@ -33,8 +33,8 @@ if (isset($_GET['cari']) && $_GET['cari'] != '') {
     <div class="container-fluid mt-3">
 
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-success">🗺 Data Jalur Pendakian</h3>
-        <a href="tambah_jalur.php" class="btn btn-success">+ Tambah Jalur</a>
+        <h3 class="fw-bold text-success">Data Jalur Pendakian</h3>
+       
       </div>
 
       <!-- FORM PENCARIAN -->
