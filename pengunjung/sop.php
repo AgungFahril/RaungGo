@@ -129,6 +129,11 @@ $nama_pengguna = htmlspecialchars($_SESSION['nama'] ?? 'Pendaki');
             <li><a href="#larangan"><i class="fa-solid fa-ban"></i> Larangan</a></li>
             <li><a href="#booking"><i class="fa-solid fa-calendar-check"></i> Booking</a></li>
         </ul>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <a href="../pengunjung/dashboard.php" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #e53935; color: white; text-decoration: none; padding: 12px 16px; border-radius: 8px; font-weight: 600; transition: 0.3s;">
+                <i class="fa-solid fa-arrow-left"></i> Kembali
+            </a>
+        </div>
     </aside>
 
     <main class="main-content">

@@ -73,11 +73,11 @@ try {
     $querys = [
         'total' => "SELECT COUNT(*) as total FROM pesanan WHERE user_id = ?",
         'sukses' => "SELECT COUNT(*) as total FROM pesanan WHERE user_id = ? 
-                     AND (status_pesanan LIKE '%lunas%' OR status_pesanan LIKE '%terkonfirmasi%' OR status_pesanan LIKE '%selesai%')",
+                     AND status_pesanan IN ('lunas', 'terkonfirmasi', 'selesai', 'berhasil')",
         'pending' => "SELECT COUNT(*) as total FROM pesanan WHERE user_id = ? 
-                      AND (status_pesanan LIKE '%menunggu%' OR status_pesanan LIKE '%Pending%')",
+                      AND status_pesanan IN ('menunggu_pembayaran', 'menunggu_konfirmasi')",
         'batal' => "SELECT COUNT(*) as total FROM pesanan WHERE user_id = ? 
-                    AND (status_pesanan LIKE '%batal%' OR status_pesanan LIKE '%cancel%')"
+                    AND status_pesanan IN ('batal', 'dibatalkan', 'gagal')"
     ];
     foreach ($querys as $key => $q) {
         $stmt = $conn->prepare($q);
@@ -127,7 +127,15 @@ body{
     animation:slideIn .8s ease;
     display:flex;
     flex-direction:column;
-    justify-content:space-between;
+    overflow-y:auto;
+}
+
+.sidebar > div:first-child{
+    flex:1;
+}
+
+.sidebar > a:last-child{
+    margin-top:auto;
 }
 
 /* SIDEBAR HEADER */
@@ -145,6 +153,7 @@ body{
     margin-right:16px;
     overflow:hidden;
     border:3px solid rgba(255,255,255,0.2);
+    flex-shrink:0;
 }
 .user-avatar img{width:100%;height:100%;object-fit:cover}
 .user-info h3{font-size:15px;margin-bottom:5px}
@@ -152,7 +161,19 @@ body{
 .status-indicator{width:8px;height:8px;background:#FFD700;border-radius:50%;margin-right:6px;animation:pulse 2s infinite}
 
 /* NAVIGATION */
-.sidebar-nav{margin-top:15px}
+.sidebar-nav{
+    margin-top:15px;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+.sidebar-actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    border-top:1px solid rgba(255,255,255,0.15);
+    padding-top:15px;
+}
 .nav-item{
     display:block;
     padding:13px 28px;
@@ -485,7 +506,32 @@ body{
 
 /* RESPONSIVE */
 @media(max-width:900px){
-    .sidebar{position:relative;width:100%;height:auto}
+    .sidebar{
+        position:relative;
+        width:100%;
+        height:auto;
+        flex-direction:row;
+        padding:15px;
+        gap:15px;
+    }
+    .sidebar > div:first-child{
+        display:flex;
+        gap:15px;
+        width:100%;
+    }
+    .sidebar-header{
+        padding:0;
+        border-bottom:none;
+    }
+    .sidebar-nav{
+        gap:0;
+        flex-direction:row;
+        flex-wrap:wrap;
+    }
+    .nav-item{
+        padding:10px 15px;
+        font-size:14px;
+    }
     .main-content{margin-left:0;padding:25px}
     .stats-grid{grid-template-columns:1fr;gap:20px}
 }
@@ -515,10 +561,12 @@ body{
                 <a href="profil_pribadi.php" class="nav-item">👤 Profil Pribadi</a>
                 <a href="edit_profil.php" class="nav-item">✏️ Edit Profil</a>
                 <a href="booking.php" class="nav-item">📅 Booking</a>
-                <a href="detail_transaksi.php" class="nav-item">📊 Transaksi</a>
             </nav>
         </div>
-        <a href="../backend/logout.php" class="nav-item" style="border-top:1px solid rgba(255,255,255,0.15);background:#e53935">🚪 Logout</a>
+        <div class="sidebar-actions">
+            <a href="../index.php" class="nav-item" style="background:#2e7d32;border-left:4px solid #FFD700">🏠 Kembali ke Utama</a>
+            <a href="../backend/logout.php" class="nav-item" style="background:#e53935;border-left:4px solid #FFD700">🚪 Logout</a>
+        </div>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -569,7 +617,6 @@ body{
                 mengecek status pembayaran, dan melihat informasi SOP pendakian melalui menu di samping.
                 Pastikan semua data Anda akurat untuk pengalaman booking yang lancar.
             </p>
-            <a href="../index.php" class="home-button">🏠 Kembali ke Halaman Utama</a>
         </div>
     </main>
 </div>

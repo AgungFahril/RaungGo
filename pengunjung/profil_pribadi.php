@@ -136,6 +136,14 @@ $stmt->close();
             padding: 25px 0;
         }
 
+        .sidebar-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            padding-top: 15px;
+        }
+
         .nav-item {
             display: block;
             padding: 15px 25px;
@@ -583,10 +591,12 @@ $stmt->close();
                     <a href="profil_pribadi.php" class="nav-item active">👤 Profil Pribadi</a>
                     <a href="edit_profil.php" class="nav-item">✏️ Edit Profil</a>
                     <a href="booking.php" class="nav-item">📅 Booking</a>
-                    <a href="detail_transaksi.php" class="nav-item">📊 Transaksi</a>
                 </nav>
             </div>
-            <a href="../backend/logout.php" class="nav-item" style="border-top: 1px solid rgba(255, 255, 255, 0.15); background: #e53935;">🚪 Logout</a>
+            <div class="sidebar-actions">
+                <a href="../index.php" class="nav-item" style="background:#2e7d32;border-left:4px solid #FFD700">🏠 Kembali ke Utama</a>
+                <a href="../backend/logout.php" class="nav-item" style="background:#e53935;border-left:4px solid #FFD700">🚪 Logout</a>
+            </div>
         </aside>
 
         <!-- MAIN CONTENT -->

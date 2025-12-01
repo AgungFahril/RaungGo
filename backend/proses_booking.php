@@ -300,11 +300,19 @@ try {
     // Simpan juga ke anggota_pendaki (tabel daftar anggota pendaki) — catat ketua juga
     $hasAnggotaPendaki = (int)$conn->query("SHOW TABLES LIKE 'anggota_pendaki'")->num_rows;
     if ($hasAnggotaPendaki) {
-        $stmtAP = $conn->prepare("INSERT INTO anggota_pendaki (pesanan_id, nama_anggota, no_identitas, no_hp, kewarganegaraan, jenis_kelamin) VALUES (?, ?, ?, ?, ?, ?)");
+        // Normalize jenis_kelamin ke enum values (L atau P)
+        $ket_jk = trim($_POST['jenis_kelamin_ketua'] ?? '');
+        if ($ket_jk === 'Laki-laki' || $ket_jk === 'L') {
+            $ket_jk = 'L';
+        } elseif ($ket_jk === 'Perempuan' || $ket_jk === 'P') {
+            $ket_jk = 'P';
+        } else {
+            $ket_jk = 'P'; // default
+        }
+        
+        $stmtAP = $conn->prepare("INSERT INTO anggota_pendaki (pesanan_id, nama_anggota, no_identitas, jenis_kelamin) VALUES (?, ?, ?, ?)");
         if (!$stmtAP) throw new Exception("Prepare INSERT anggota_pendaki (ketua) gagal: ".$conn->error);
-        $ket_kew = trim($_POST['kewarganegaraan_ketua'] ?? 'WNI');
-        $ket_jk  = trim($_POST['jenis_kelamin_ketua'] ?? '');
-        $stmtAP->bind_param("isssss", $pesanan_id, $nama_ketua, $no_identitas, $telepon_ketua, $ket_kew, $ket_jk);
+        $stmtAP->bind_param("isss", $pesanan_id, $nama_ketua, $no_identitas, $ket_jk);
         if (!$stmtAP->execute()) throw new Exception("Eksekusi INSERT anggota_pendaki (ketua) gagal: ".$stmtAP->error);
         $stmtAP->close();
     }
@@ -370,9 +378,19 @@ try {
 
             // insert ke anggota_pendaki bila tabel ada
             if ($hasAnggotaPendaki) {
-                $stmtAP2 = $conn->prepare("INSERT INTO anggota_pendaki (pesanan_id, nama_anggota, no_identitas, no_hp, kewarganegaraan, jenis_kelamin) VALUES (?, ?, ?, ?, ?, ?)");
+                // Normalize jenis_kelamin ke enum values (L atau P)
+                $jkA_normalized = $jkA;
+                if ($jkA === 'Laki-laki' || $jkA === 'L') {
+                    $jkA_normalized = 'L';
+                } elseif ($jkA === 'Perempuan' || $jkA === 'P') {
+                    $jkA_normalized = 'P';
+                } else {
+                    $jkA_normalized = 'P'; // default
+                }
+                
+                $stmtAP2 = $conn->prepare("INSERT INTO anggota_pendaki (pesanan_id, nama_anggota, no_identitas, jenis_kelamin) VALUES (?, ?, ?, ?)");
                 if (!$stmtAP2) throw new Exception("Prepare INSERT anggota_pendaki gagal: " . $conn->error);
-                $stmtAP2->bind_param("isssss", $pesanan_id, $namaA, $nikA, $hpA, $kewA, $jkA);
+                $stmtAP2->bind_param("isss", $pesanan_id, $namaA, $nikA, $jkA_normalized);
                 if (!$stmtAP2->execute()) throw new Exception("Gagal menyimpan anggota_pendaki untuk {$namaA}: " . $stmtAP2->error);
                 $stmtAP2->close();
             }
