@@ -68,17 +68,17 @@ if (isset($_POST['login'])) {
             exit;
 
         } else {
-            $stmt->close();
             $_SESSION['login_error'] = 'Password yang Anda masukkan salah!';
             header('Location: ../login.php');
             exit;
         }
     } else {
-        $stmt->close();
         $_SESSION['login_error'] = 'Email tidak terdaftar!';
         header('Location: ../login.php');
         exit;
     }
+
+    $stmt->close();
 } else {
     header("Location: ../login.php");
     exit;

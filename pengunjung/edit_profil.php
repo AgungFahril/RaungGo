@@ -145,6 +145,7 @@ if (isset($_POST['ubah_password'])) {
     .user-info h3{font-size:15px;font-weight:600}
     .user-status{font-size:12px;color:#ffd700}
     .sidebar-nav{margin-top:25px}
+    .sidebar-actions{display:flex;flex-direction:column;gap:8px;border-top:1px solid rgba(255,255,255,0.15);padding-top:15px}
     .nav-item{display:flex;align-items:center;padding:14px 25px;color:#fff;text-decoration:none;opacity:0.9;transition:all 0.3s;border-left:4px solid transparent}
     .nav-item:hover{background:rgba(255,255,255,0.1);opacity:1;border-left:4px solid #ffd700;transform:translateX(4px)}
     .nav-item.active{background:rgba(255,255,255,0.15);border-left:4px solid #ffd700}
@@ -200,10 +201,12 @@ if (isset($_POST['ubah_password'])) {
                 <a href="profil_pribadi.php" class="nav-item">👤 Profil Pribadi</a>
                 <a href="edit_profil.php" class="nav-item active">✏️ Edit Profil</a>
                 <a href="booking.php" class="nav-item">📅 Booking</a>
-                <a href="detail_transaksi.php" class="nav-item">📊 Transaksi</a>
             </div>
         </div>
-        <a href="../backend/logout.php" class="nav-item" style="border-top: 1px solid rgba(255, 255, 255, 0.15); background: #e53935;">🚪 Logout</a>
+        <div class="sidebar-actions">
+            <a href="../index.php" class="nav-item" style="background:#2e7d32;border-left:4px solid #FFD700">🏠 Kembali ke Utama</a>
+            <a href="../backend/logout.php" class="nav-item" style="background:#e53935;border-left:4px solid #FFD700">🚪 Logout</a>
+        </div>
     </div>
 
     <div class="main-content">

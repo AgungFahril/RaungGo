@@ -18,11 +18,11 @@ if (isset($_GET['filter']) && isset($_SESSION['user_id'])) {
     
     // Filter berdasarkan status
     if ($filter === 'success') {
-        $whereClause .= " AND ps.status_pesanan IN ('Terkonfirmasi', 'Approved', 'Confirmed', 'lunas')";
+        $whereClause .= " AND ps.status_pesanan IN ('lunas', 'terkonfirmasi', 'selesai', 'berhasil')";
     } elseif ($filter === 'pending') {
-        $whereClause .= " AND ps.status_pesanan IN ('Menunggu Pembayaran', 'Pending', 'menunggu_pembayaran', 'menunggu_konfirmasi')";
+        $whereClause .= " AND ps.status_pesanan IN ('menunggu_pembayaran', 'menunggu_konfirmasi')";
     } elseif ($filter === 'cancelled') {
-        $whereClause .= " AND ps.status_pesanan IN ('Dibatalkan', 'Cancelled', 'Rejected', 'batal')";
+        $whereClause .= " AND ps.status_pesanan IN ('batal', 'dibatalkan', 'gagal')";
     }
     
     $sql = "
@@ -223,8 +223,24 @@ button:hover { background: #2e7d32; }
             </thead>
             <tbody>
                 <?php foreach ($bookings as $row): 
-                    $status_class = 'status-' . strtolower(str_replace(' ', '_', $row['status_pesanan']));
-                    $status_text = ucfirst(str_replace('_', ' ', $row['status_pesanan']));
+                    // Map status dengan benar
+                    $status_pesanan = strtolower($row['status_pesanan']);
+                    if (in_array($status_pesanan, ['batal', 'dibatalkan', 'cancelled', 'rejected'])) {
+                        $status_text = 'Dibatalkan';
+                        $status_class = 'status-batal';
+                    } elseif (in_array($status_pesanan, ['menunggu_pembayaran', 'pending'])) {
+                        $status_text = 'Menunggu Pembayaran';
+                        $status_class = 'status-menunggu_pembayaran';
+                    } elseif (in_array($status_pesanan, ['menunggu_konfirmasi', 'verifikasi'])) {
+                        $status_text = 'Menunggu Konfirmasi';
+                        $status_class = 'status-menunggu_konfirmasi';
+                    } elseif (in_array($status_pesanan, ['lunas', 'terkonfirmasi', 'approved', 'confirmed'])) {
+                        $status_text = 'Terkonfirmasi';
+                        $status_class = 'status-lunas';
+                    } else {
+                        $status_text = ucfirst(str_replace('_', ' ', $row['status_pesanan']));
+                        $status_class = 'status-' . strtolower(str_replace(' ', '_', $row['status_pesanan']));
+                    }
                 ?>
                 <tr>
                     <td><?= htmlspecialchars($row['kode_token']); ?></td>
