@@ -129,10 +129,17 @@
         <a href="menunggu_pembayaran.php"><i class="fa-solid fa-spinner"></i> Menunggu Konfirmasi</a>
     </div>
 
+<<<<<<< Updated upstream
     <a href="jalur_pendakian.php" class="menu-item">
         <i class="fa-solid fa-map-location-dot"></i> Data Jalur
     </a>
 
+=======
+   <a href="jalur_pendakian.php" class="menu-item">
+    <i class="fa-solid fa-map-location-dot"></i> Data Jalur
+</a>
+   
+>>>>>>> Stashed changes
 </div>
 
 <script>

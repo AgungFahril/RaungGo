@@ -217,7 +217,11 @@ $pendapatan = $d4['total'] ? number_format($d4['total'],0,',','.') : "0";
   <table class="search-table" id="resultTable">
     <thead>
       <tr>
+<<<<<<< Updated upstream
        <th>No</th>
+=======
+       
+>>>>>>> Stashed changes
         <th>Kode</th>
         <th>Pemesan</th>
         <th>Jalur</th>
