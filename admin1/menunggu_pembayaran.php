@@ -34,7 +34,7 @@ if (isset($_GET['cari']) && $_GET['cari'] != '') {
 
     <div class="container-fluid mt-3">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-warning">⏳ Menunggu Konfirmasi Pembayaran</h3>
+        <h3 class="fw-bold text-warning"> Menunggu Konfirmasi Pembayaran</h3>
 
         <a href="pembayaran.php" class="btn btn-success">⬅ Kembali ke Pembayaran</a>
       </div>

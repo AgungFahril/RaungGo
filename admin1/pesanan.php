@@ -22,7 +22,7 @@ include '../backend/koneksi.php';
 
     <div class="container-fluid mt-3">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-success">📊 Data Pesanan</h3>
+        <h3 class="fw-bold text-success"> Data Pesanan</h3>
         <a href="dashboard_1.php" class="btn btn-success">⬅ Kembali ke Dashboard</a>
       </div>
 
