@@ -154,7 +154,39 @@ body{font-family:'Poppins',system-ui,Arial; background:#f5faf5; color:#222; marg
 </head>
 <body>
 
-<?php include '../includes/navbar_user.php'; ?>
+<nav style="
+    background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+">
+    <a href="../index.php" style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: white;">
+        <img src="../images/RaungGo.png" alt="RaungGo Logo" style="height: 45px; width: auto;">
+        <span style="font-weight: 700; font-size: 1.1rem;">Detail Transaksi</span>
+    </a>
+    
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <a href="../StatusBooking.php" style="
+            color: white; 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 0.6rem 1.2rem; 
+            background: rgba(255,255,255,0.2); 
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+            ← Status Booking
+        </a>
+        <span style="color: rgba(255,255,255,0.9); font-weight: 500;">
+            👋 Halo, <?= htmlspecialchars($_SESSION['nama'] ?? 'User') ?>
+        </span>
+    </div>
+</nav>
 <div class="header-space"></div>
 
 <div class="container-wrap">

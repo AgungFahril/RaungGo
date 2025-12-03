@@ -62,29 +62,176 @@ body {
 }
 
 /* ============================================================ */
-/* === NAVBAR - CLEAN LEAF GREEN === */
+/* === SIDEBAR NAVIGATION - VERTICAL LAYOUT === */
 /* ============================================================ */
-.navbar {
+
+sidebar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.2rem 6%;
-    background: linear-gradient(135deg, var(--leaf-green) 0%, var(--leaf-dark) 100%);
-    box-shadow: var(--shadow-md);
-    position: sticky;
+    padding: 0 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Tombol Hide - Fixed di Kanan Tengah Navbar */
+.sidebar-toggle {
+    position: fixed !important;
+    top: 50% !important;
+    left: 235px !important; /* 250px (lebar navbar) - 15px */
+    transform: translateY(-50%) !important;
+    background: var(--leaf-green) !important;
+    border: none !important;
+    color: white !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    z-index: 1001 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.sidebar-toggle:hover {
+    background: var(--leaf-dark) !important;
+    transform: translateY(-50%) scale(1.1) !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important;
+}
+
+/* Tombol hide menghilang saat sidebar hidden */
+.navbar.hidden .sidebar-toggle {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Sembunyikan ikon Font Awesome, tampilkan symbol */
+.sidebar-toggle i {
+    display: none;
+}
+
+.sidebar-toggle span {
+    display: inline-block;
+}
+
+/* Tombol Show Sidebar - ✅ TAMBAHKAN INI */
+/* Tombol Show Sidebar - Fixed Position di Tepi Kiri Layar */
+.sidebar-show-btn {
+    position: fixed !important; /* Harus fixed, bukan absolute */
+    top: 50% !important;
+    left: -50px !important; /* Tersembunyi di kiri layar */
+    transform: translateY(-50%) !important;
+    background: var(--leaf-green) !important;
+    color: white !important;
+    border: none !important;
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 0 8px 8px 0 !important;
+    cursor: pointer !important;
+    z-index: 999 !important; /* Di bawah sidebar (z-index: 1000) */
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.2rem !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Tombol muncul saat sidebar hidden */
+.sidebar-show-btn.active {
+    left: 0 !important; /* Slide masuk dari kiri */
+    opacity: 1 !important;
+    pointer-events: all !important;
+}
+
+.sidebar-show-btn:hover {
+    background: var(--leaf-dark) !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4) !important;
+    transform: translateY(-50%) scale(1.05) !important;
+}
+
+.navbar {
+    position: fixed;
     top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    background: linear-gradient(180deg, var(--leaf-green) 0%, var(--leaf-dark) 100%);
+    box-shadow: var(--shadow-lg);
+    padding: 2rem 0;
+    overflow-y: auto;
     z-index: 1000;
-    border-bottom: 3px solid var(--sage-green);
+    display: flex;
+    flex-direction: column;
+    border-right: 3px solid var(--sage-green);
+    transition: all 0.4s ease; /* ✅ TAMBAHKAN INI */
+}
+/* Navbar Hidden State - ✅ TAMBAHKAN INI */
+.navbar.hidden {
+    left: -250px;
+}
+/* Logo di Navbar */
+/* Logo di Navbar */
+/* Logo di Navbar - UKURAN LEBIH BESAR */
+/* Sidebar Header - Beri Ruang Lebih */
+.sidebar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem; /* Tambah padding */
+    margin-bottom: 1.5rem;
+    min-height: 100px; /* Beri tinggi minimum */
+    overflow: visible; /* PENTING: jangan potong logo */
 }
 
 .nav-brand {
-    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    overflow: visible; /* PENTING */
+}
+
+/* Logo di Navbar - Ukuran Proporsional */
+.navbar-logo {
+    width: 85%; /* 85% dari lebar navbar (250px) = sekitar 212px */
+    max-width: 220px;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.nav-brand:hover .navbar-logo {
+    transform: scale(1.05);
+    filter: brightness(1.15);
+}
+
+/* Responsif */
+@media (max-width: 768px) {
+    .navbar-logo {
+        width: 80%;
+        max-width: 180px;
+    }
+    
+    .sidebar-header {
+        padding: 1.5rem 0.8rem;
+        min-height: 80px;
+    }
+}
+.nav-brand {
+    font-size: 1.4rem;
     font-weight: 700;
     text-decoration: none;
     color: var(--white);
     letter-spacing: -0.5px;
     transition: color 0.3s ease;
+    flex: 1; /* ✅ UBAH DARI display: block */
 }
+
 
 .nav-brand:hover {
     color: var(--sage-light);
@@ -93,8 +240,15 @@ body {
 .nav-menu {
     list-style: none;
     display: flex;
-    gap: 2rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 0;
+    align-items: stretch;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-menu li {
+    width: 100%;
 }
 
 .nav-menu a {
@@ -103,56 +257,100 @@ body {
     font-weight: 600;
     font-size: 1rem;
     transition: all 0.3s ease;
-    padding: 0.5rem 0;
-    display: inline-block;
+    padding: 1rem 1.5rem;
+    display: block;
     position: relative;
+    border-left: 4px solid transparent;
 }
 
-.nav-menu a::after {
+.nav-menu a::before {
     content: '';
     position: absolute;
-    bottom: 0;
     left: 0;
+    top: 0;
     width: 0;
-    height: 2px;
-    background-color: var(--sage-green);
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
     transition: width 0.3s ease;
-    border-radius: 2px;
 }
 
-.nav-menu a:hover::after {
+.nav-menu a:hover::before {
     width: 100%;
 }
 
 .nav-menu a:hover {
-    color: var(--sage-green);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: var(--sage-green);
 }
 
 .nav-menu li.active a {
-    color: var(--sage-green);
+    background-color: rgba(255, 255, 255, 0.15);
+    color: var(--sage-light);
     font-weight: 700;
-}
-
-.nav-menu li.active a::after {
-    width: 100%;
+    border-left-color: var(--sage-green);
 }
 
 .login-btn {
-    border: 2px solid var(--sage-green);
-    padding: 0.6rem 1.5rem;
-    border-radius: 25px;
-    background-color: var(--sage-green);
-    color: var(--stone-dark);
+    border: none;
+    padding: 0.9rem 1.5rem;
+    border-radius: 8px;
+    background-color: var(--leaf-light);
+    color: var(--white);
     font-weight: 700;
+    text-decoration: none;
     transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    display: block;
+    text-align: center;
+    margin: 0.5rem 1rem;
 }
 
 .login-btn:hover {
-    background-color: var(--sage-light);
-    border-color: var(--sage-light);
+    background-color: var(--sage-green);
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
 }
+
+.btn-login-blue {
+    background-color: var(--status-completed);
+}
+
+.btn-login-blue:hover {
+    background-color: #1565C0;
+}
+
+/* User greeting di sidebar */
+.nav-menu li span {
+    display: block;
+    padding: 1rem 1.5rem;
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 1rem;
+}
+
+/* Main content adjustment - beri margin kiri untuk space sidebar */
+body {
+    margin-left: 250px;
+    transition: margin-left 0.4s ease; /* ✅ TAMBAHKAN INI */
+}
+
+/* Body saat sidebar hidden - ✅ TAMBAHKAN INI */
+body.sidebar-hidden {
+    margin-left: 0;
+}
+
+/* Dashboard container adjustment */
+.dashboard-container,
+.content-page,
+.hero,
+.info-section,
+.footer {
+    margin-left: 0; /* Content sudah terpush karena body margin-left */
+}
+
 
 /* ============================================================ */
 /* === HERO SECTION - FRESH & NATURAL === */
@@ -1698,4 +1896,43 @@ body.auth-page {
     .page-content {
         box-shadow: none;
     }
+}
+/* ============================================================ */
+/* === FORCE SIDEBAR TOGGLE - OVERRIDE SEMUA === */
+/* ============================================================ */
+
+/* Navbar dalam state hidden - HARUS ke kiri */
+nav.navbar.hidden {
+    left: -250px !important;
+    transform: translateX(0) !important;
+    margin-left: 0 !important;
+}
+
+/* Navbar normal state - posisi 0 */
+nav.navbar:not(.hidden) {
+    left: 0 !important;
+}
+
+/* Body saat sidebar hidden - margin 0 */
+body.sidebar-hidden {
+    margin-left: 0 !important;
+}
+
+/* Body normal - margin 250px */
+body:not(.sidebar-hidden) {
+    margin-left: 250px !important;
+}
+
+/* Tombol show muncul saat sidebar hidden */
+.sidebar-show-btn.active {
+    left: 0 !important;
+    opacity: 1 !important;
+    pointer-events: all !important;
+}
+
+/* Tombol show tersembunyi saat sidebar visible */
+.sidebar-show-btn:not(.active) {
+    left: -50px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }

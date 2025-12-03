@@ -3,7 +3,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ✅ Pastikan koneksi database tersedia
 require_once __DIR__ . '/../backend/koneksi.php';
 
 $currentPage = basename($_SERVER['PHP_SELF']);
@@ -14,73 +13,132 @@ $basePath = (strpos($_SERVER['PHP_SELF'], '/pengunjung/') !== false || strpos($_
 $harusLengkapiData = false;
 $pesan = "";
 
-// ✅ Jika user login, cek apakah sudah melengkapi data diri
 if (!empty($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
-
+    
     $cekData = $conn->prepare("SELECT pendaki_id FROM pendaki_detail WHERE user_id = ?");
     $cekData->bind_param("i", $user_id);
     $cekData->execute();
     $cekData->store_result();
-
+    
     if ($cekData->num_rows === 0) {
         $harusLengkapiData = true;
     } else {
         $pesan = "Data diri kamu sudah lengkap! Silakan lanjut membaca SOP pendakian.";
     }
-
+    
     $cekData->close();
 }
 
-// ✅ Nilai default jika session belum ada
 $role = $_SESSION['role'] ?? 'pengunjung';
 $namaUser = $_SESSION['nama'] ?? 'Pendaki';
 ?>
 
-<nav class="navbar" style="
-    background:#2e7d32;
-    padding:10px 20px;
-    color:white;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    z-index:1000;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    box-shadow:0 2px 6px rgba(0,0,0,0.2);
-">
-    <a href="<?= $basePath ?>index.php" class="nav-brand" style="font-weight:700;color:white;text-decoration:none;">Tahura Raden Soerjo</a>
-    <ul class="nav-menu" style="list-style:none;display:flex;gap:15px;margin:0;padding:0;align-items:center;">
-    <li><a href="<?= $basePath ?>index.php" style="color:white;text-decoration:none;">Beranda</a></li>
-    <li><a href="<?= $basePath ?>pengunjung/sop.php" style="color:white;text-decoration:none;">SOP Pendaki</a></li>
-    <li><a href="<?= $basePath ?>PanduanBooking.php" style="color:white;text-decoration:none;">Panduan Booking</a></li>
-    <li><a href="<?= $basePath ?>PanduanPembayaran.php" style="color:white;text-decoration:none;">Panduan Pembayaran</a></li>
+<!-- ✅ NAVBAR - STRUKTUR YANG BENAR -->
+<nav class="navbar">
+    <div class="sidebar-header">
+        <a href="<?= $basePath ?>index.php" class="nav-brand">
+            <img src="<?= $basePath ?>images/RaungGo.png" alt="Tahura Raden Soerjo" class="navbar-logo">
+        </a>
+    </div>
+    
+    <!-- ✅ TOMBOL HIDE - FIXED DI KANAN TENGAH NAVBAR -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Sembunyikan Menu">
+        <i class="fas fa-chevron-left"></i>
+        <span style="font-size: 1.2rem;">◄</span>
+    </button>
+    
+    <ul class="nav-menu">
+        <li <?= ($currentPage == 'index.php') ? 'class="active"' : '' ?>>
+            <a href="<?= $basePath ?>index.php">
+                <i class="fas fa-home"></i> Beranda
+            </a>
+        </li>
+        
+        <li <?= ($currentPage == 'sop.php') ? 'class="active"' : '' ?>>
+            <a href="<?= $basePath ?>pengunjung/sop.php">
+                <i class="fas fa-book"></i> SOP Pendaki
+            </a>
+        </li>
+        
+        <li <?= ($currentPage == 'PanduanBooking.php') ? 'class="active"' : '' ?>>
+            <a href="<?= $basePath ?>PanduanBooking.php">
+                <i class="fas fa-calendar-check"></i> Panduan Booking
+            </a>
+        </li>
+        
+        <li <?= ($currentPage == 'PanduanPembayaran.php') ? 'class="active"' : '' ?>>
+            <a href="<?= $basePath ?>PanduanPembayaran.php">
+                <i class="fas fa-credit-card"></i> Panduan Pembayaran
+            </a>
+        </li>
 
-    <!-- 👤 Menu Login / Dashboard -->
-    <?php if (!empty($_SESSION['user_id'])): ?>
-        <?php if ($role === 'admin'): ?>
-            <li><a href="<?= $basePath ?>admin/dashboard.php" style="color:white;text-decoration:none;">Dashboard</a></li>
+        <?php if (!empty($_SESSION['user_id'])): ?>
+            <?php if ($role === 'admin'): ?>
+                <li <?= ($currentPage == 'dashboard.php' && str_contains($_SERVER['REQUEST_URI'], 'admin')) ? 'class="active"' : '' ?>>
+                    <a href="<?= $basePath ?>admin/dashboard.php">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+            <?php else: ?>
+                <li <?= ($currentPage == 'dashboard.php' && str_contains($_SERVER['REQUEST_URI'], 'pengunjung')) ? 'class="active"' : '' ?>>
+                    <a href="<?= $basePath ?>pengunjung/dashboard.php">
+                        <i class="fas fa-user-circle"></i> Dashboard
+                    </a>
+                </li>
+            <?php endif; ?>
+
+            <li>
+                <a href="<?= $basePath ?>backend/logout.php" class="login-btn btn-danger">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
+            
+            <li>
+                <span class="user-greeting">
+                    👋 Halo, <?= htmlspecialchars($namaUser); ?>
+                </span>
+            </li>
         <?php else: ?>
-            <li><a href="<?= $basePath ?>pengunjung/dashboard.php" style="color:white;text-decoration:none;">Dashboard</a></li>
+            <li>
+                <a href="<?= $basePath ?>login.php" class="login-btn btn-login-blue">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </li>
         <?php endif; ?>
-
-        <li><a href="<?= $basePath ?>backend/logout.php" style="color:#fff;background:#e53935;padding:6px 12px;border-radius:6px;text-decoration:none;">Logout</a></li>
-        <li><span style="font-weight:600;">👋 Halo, <?= htmlspecialchars($namaUser); ?></span></li>
-    <?php else: ?>
-        <li><a href="<?= $basePath ?>login.php" style="color:#fff;background:#1e88e5;padding:6px 12px;border-radius:6px;text-decoration:none;">Login</a></li>
-    <?php endif; ?>
-</ul>
-
+    </ul>
 </nav>
+<!-- ✅ NAVBAR SELESAI -->
 
-<!-- 🧩 Tambahkan jarak agar konten tidak tertutup navbar -->
-<style>
-body {
-    padding-top: 60px;
+<!-- ✅ TOMBOL SHOW - HARUS DI LUAR NAVBAR -->
+<button class="sidebar-show-btn" onclick="toggleSidebar()" title="Tampilkan Menu">
+    <i class="fas fa-chevron-right"></i>
+    <span style="font-size: 1.2rem;">►</span>
+</button>
+
+<!-- ✅ JAVASCRIPT TOGGLE -->
+<script>
+function toggleSidebar() {
+    const navbar = document.querySelector('nav.navbar');
+    const showBtn = document.querySelector('.sidebar-show-btn');
+    const body = document.body;
+    
+    console.log('Toggle sidebar executed');
+    
+    if (navbar) {
+        navbar.classList.toggle('hidden');
+        console.log('Navbar hidden:', navbar.classList.contains('hidden'));
+    }
+    
+    if (showBtn) {
+        showBtn.classList.toggle('active');
+    }
+    
+    if (body) {
+        body.classList.toggle('sidebar-hidden');
+    }
 }
-</style>
+</script>
 
 <?php if (!empty($pesan) && $currentPage === 'index.php'): ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
