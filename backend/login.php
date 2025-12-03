@@ -45,7 +45,7 @@ if (isset($_POST['login'])) {
 
             // 🔁 Logika redirect
             if ($role === 'admin') {
-                header("Location: ../admin/dashboard.php");
+                header("Location: ../admin/dashboard_1.php");
                 exit;
             }
 
