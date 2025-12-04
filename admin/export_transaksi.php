@@ -1,5 +1,6 @@
 <?php
-include '../backend/koneksi.php';
+include '../includes/auth_admin.php';   // proteksi admin
+include '../backend/koneksi.php';       // koneksi database
 
 header('Content-Type: text/csv; charset=utf-8');
 header('Content-Disposition: attachment; filename=transaksi_export_'.date('Ymd_His').'.csv');

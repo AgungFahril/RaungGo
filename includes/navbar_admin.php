@@ -1,20 +1,49 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../login.php");
+
+// CEK LOGIN USER BIASA
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /PROJEKSEMESTER3/login.php");
     exit;
 }
 ?>
-<nav class="navbar">
-    <a href="admin/dashboard.php" class="nav-brand">🌲 Admin - Tahura Raden Soerjo</a>
-    <ul class="nav-menu">
-        <li><a href="admin/dashboard.php">Dashboard</a></li>
-        <li><a href="admin/kelola_pendaki.php">Kelola Pendaki</a></li>
-        <li><a href="admin/kelola_booking.php">Kelola Booking</a></li>
-        <li><a href="admin/kelola_pembayaran.php">Kelola Pembayaran</a></li>
-        <li><a href="admin/laporan.php">Laporan</a></li>
-        <li><a href="admin/pengaturan.php">Pengaturan</a></li>
-        <li><a href="backend/logout.php" class="login-btn">Logout</a></li>
-        <li><span class="user-name">👋 <?= htmlspecialchars($_SESSION['nama'] ?? 'Admin'); ?></span></li>
-    </ul>
+
+<!-- NAVBAR USER -->
+<nav style="
+    width: 100%;
+    height: 60px;
+    background: #0d5f2a;
+    padding: 0 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: Arial, sans-serif;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+">
+    <div style="font-size: 20px; font-weight: bold;">
+        Gunung Raung – User Panel
+    </div>
+
+    <div>
+        <a href="/PROJEKSEMESTER3/user/dashboard.php" style="color: #fff; margin-right: 20px; text-decoration: none;">
+            Dashboard
+        </a>
+        <a href="/PROJEKSEMESTER3/user/pesanan_saya.php" style="color: #fff; margin-right: 20px; text-decoration: none;">
+            Pesanan
+        </a>
+        <a href="/PROJEKSEMESTER3/logout.php" style="color: #ffdddd; text-decoration: none;">
+            Logout
+        </a>
+    </div>
 </nav>
+
+<!-- AGAR KONTEN TURUN -->
+<style>
+body {
+    padding-top: 70px; 
+}
+</style>

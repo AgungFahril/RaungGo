@@ -355,5 +355,13 @@ thead.table-header-hijau {
     text-decoration: none;
     font-size: 12px;
 }
+
+.btn-aksi {
+    padding: 5px 12px !important;
+    font-size: 12px !important;
+    width: 85px;
+    display: inline-block;
+}
+
 /* Dashboard */
 
