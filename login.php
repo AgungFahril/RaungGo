@@ -4,6 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Include Google config
+require_once 'backend/google-config.php';
+
 // Tampilkan pesan error (jika ada)
 $error_message = '';
 if (isset($_SESSION['login_error'])) {
@@ -20,6 +23,8 @@ if (isset($_SESSION['user_id'])) {
     }
     exit;
 }
+
+$googleLoginUrl = getGoogleLoginUrl();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -74,11 +79,22 @@ if (isset($_SESSION['user_id'])) {
 
                 <div class="separator"><span>atau</span></div>
 
-                <button type="button" class="btn btn-google" onclick="alert('Fitur login Google belum tersedia');">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
-                         alt="Google logo" class="google-logo">
-                    Masuk dengan Google
-                </button>
+                <?php if ($googleLoginUrl): ?>
+                    <a href="<?= $googleLoginUrl ?>" class="btn btn-google">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+                             alt="Google logo" class="google-logo">
+                        Masuk dengan Google
+                    </a>
+                <?php else: ?>
+                    <button type="button" class="btn btn-google" disabled title="Google OAuth belum dikonfigurasi">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+                             alt="Google logo" class="google-logo">
+                        Masuk dengan Google
+                    </button>
+                    <p style="text-align: center; font-size: 12px; color: #999; margin-top: 10px;">
+                        ℹ️ Admin perlu konfigurasi Google OAuth di backend/google-config.php
+                    </p>
+                <?php endif; ?>
             </div>
         </div>
 
