@@ -1,6 +1,7 @@
 <?php
 // aksi_transaksi.php
-include '../backend/koneksi.php';
+include '../includes/auth_admin.php';   // proteksi admin
+include '../backend/koneksi.php';       // koneksi database
 if($_SERVER['REQUEST_METHOD'] !== 'POST') {
   header('Location: data_pembayaran.php'); exit;
 }

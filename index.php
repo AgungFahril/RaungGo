@@ -1,5 +1,11 @@
 <?php
 session_start();
+
+// ✅ PEMBATASAN AKSES - Admin tidak boleh akses halaman user
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
+    header('Location: admin/dashboard_1.php');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -33,7 +39,7 @@ session_start();
                     <a href="login.php?redirect=pengunjung/sop.php" class="btn btn-primary">BOOKING</a>
                 <?php endif; ?>
 
-                <!-- 🔓 Status Booking bisa diakses tanpa login -->
+                <!-- 🔍 Status Booking bisa diakses tanpa login -->
                 <a href="StatusBooking.php" class="btn btn-secondary">STATUS BOOKING</a>
             </div>
         </div>
@@ -53,7 +59,7 @@ session_start();
         </div>
     </section>
 
-    <!-- 🔁 Alur Booking -->
+    <!-- 📋 Alur Booking -->
     <section class="info-section">
         <h2>Alur Booking</h2>
         <div class="booking-steps">
@@ -167,7 +173,7 @@ session_start();
         </div>
     </section>
 
-    <!-- 📍 Maps -->
+    <!-- 🗺️ Maps -->
     <section class="info-section">
         <h2>Maps</h2>
         <h3 class="section-subtitle">Lokasi pos pendakian interaktif Gunung Raung</h3>

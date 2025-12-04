@@ -1,6 +1,7 @@
 <?php 
 $page_title = 'Detail Booking';
-include '../backend/koneksi.php';
+include '../includes/auth_admin.php';   // proteksi admin
+include '../backend/koneksi.php';       // koneksi database
 
 // Ambil ID pesanan
 $id = $_GET['id'] ?? 0;
@@ -47,81 +48,102 @@ $anggota = mysqli_query($conn, "
   <meta charset="utf-8">
   <title>Detail Booking - Admin</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
-    .img-thumb { width: 80px; border-radius: 6px; border: 1px solid #fbfffcff; }
-  
-        body {
-    position: relative;
-    background: url('Gunung_Raung1.jpg') no-repeat center center fixed;
-    background-size: cover;
-    overflow-x: hidden;
-}
-
-/* Overlay blur + warna hijau transparan */
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    backdrop-filter: blur(6px);       /* Blur background */
-    background: rgba(0, 128, 0, 0.25); /* Sentuhan hijau (0.25 = tingkat transparansi) */
-    pointer-events: none;
-    z-index: -1; /* Pastikan tidak menutupi konten */
-}
-
-
-    .card {
-        background: #b2d7baee;
-        backdrop-filter: blur(2px);
+    .img-thumb { 
+        width: 90px; 
+        border-radius: 8px; 
+        border: 2px solid #d8e8dc; 
+        transition: .2s;
     }
-@media print {
-    /* Hilangkan tombol & background saat print */
-    a.btn, button.btn {
-        display: none !important;
+    .img-thumb:hover {
+        transform: scale(1.15);
+        border-color: #1d7f4c;
     }
 
     body {
-        background: #9db0a5ff !important;
+        background: url('Gunung_Raung1.jpg') no-repeat center center fixed;
+        background-size: cover;
+        backdrop-filter: blur(4px);
     }
 
     body::before {
-        display: none !important;
+        content: "";
+        position: fixed;
+        inset: 0;
+        backdrop-filter: blur(6px);
+        background: rgba(0, 64, 0, 0.25);
+        z-index: -1;
     }
 
     .card {
-        box-shadow: none !important;
-        background: #b9c7beff !important;
+        background: #cfe8d6dd;
+        border-radius: 12px;
     }
 
-    img.img-thumb {
-        width: 120px !important;
-        border: 1px solid #777;
+    .title-icon {
+        font-size: 26px;
+        margin-right: 6px;
     }
-}
 
-
+    @media print {
+        a.btn, button.btn { display: none !important; }
+        body::before { display: none !important; }
+        body { background: white !important; }
+        .card { background: white !important; box-shadow: none !important; }
+    }
   </style>
 </head>
 <body>
 
 <div class="container mt-4">
 
+    <!-- Tombol -->
     <a href="pesanan.php" class="btn btn-success mb-3">← Kembali</a>
-    
     <button onclick="window.print()" class="btn btn-primary mb-3 ms-2">🖨 Cetak</button>
 
+    <!-- Ringkasan Singkat -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card p-3 text-center shadow-sm">
+                <h6>Total Anggota</h6>
+                <h3 class="fw-bold text-success">
+                    <?= mysqli_num_rows($anggota); ?>
+                </h3>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-3 text-center shadow-sm">
+                <h6>Layanan Dipilih</h6>
+                <p class="m-0">
+                    Porter: <b><?= $header['nama_porter'] ?: '-'; ?></b><br>
+                    Ojek: <b><?= $header['nama_ojek'] ?: '-'; ?></b>
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-3 text-center shadow-sm">
+                <h6>Tanggal Pendakian</h6>
+                <p class="m-0 fw-bold">
+                    <?= $header['tanggal_pendakian']; ?> → <?= $header['tanggal_turun']; ?>
+                </p>
+            </div>
+        </div>
+    </div>
 
     <!-- HEADER PESANAN -->
     <div class="card p-4 mb-4">
-        <h4 class="fw-bold text-success mb-3">📌 Informasi Pesanan</h4>
+        <h4 class="fw-bold text-success mb-3">
+            <span class="title-icon">📌</span> Informasi Pesanan
+        </h4>
 
         <div class="row">
             <div class="col-md-6">
                 <p><b>ID Pesanan:</b> <?= $header['pesanan_id']; ?></p>
                 <p><b>Kode Token:</b> <?= $header['kode_token']; ?></p>
-                <p><b>Total Bayar:</b> Rp <?= number_format($header['total_bayar'],0,',','.'); ?></p>
+                <p><b>Total Bayar:</b> Rp <?= number_format($header['total_bayar'], 0, ',', '.'); ?></p>
             </div>
             <div class="col-md-6">
                 <p><b>Tgl Pesan:</b> <?= $header['tanggal_pesan']; ?></p>
@@ -131,29 +153,42 @@ body::before {
         </div>
     </div>
 
-    <!-- LAYANAN -->
-    <div class="card p-4 mb-4">
-        <h4 class="fw-bold text-primary mb-3">🛒 Layanan</h4>
-        <p><b>Porter:</b> <?= $header['nama_porter'] ?? '-'; ?></p>
-        <p><b>Ojek:</b> <?= $header['nama_ojek'] ?? '-'; ?></p>
-    </div>
-
     <!-- BIODATA KETUA -->
     <div class="card p-4 mb-4">
-        <h4 class="fw-bold text-warning mb-3">👤 Biodata Ketua</h4>
-        <p><b>Nama Ketua:</b> <?= $header['nama_ketua']; ?></p>
-        <p><b>No HP:</b> <?= $header['telepon_ketua']; ?></p>
-        <p><b>Alamat:</b> <?= $header['alamat_ketua']; ?></p>
+        <h4 class="fw-bold text-warning mb-3">
+            <span class="title-icon">👤</span> Biodata Ketua
+        </h4>
+
+        <div class="row">
+            <div class="col-md-6">
+                <p><b>Nama Ketua:</b> <?= $header['nama_ketua']; ?></p>
+                <p><b>No HP:</b> <?= $header['telepon_ketua']; ?></p>
+            </div>
+            <div class="col-md-6">
+                <p><b>Alamat:</b> <?= $header['alamat_ketua']; ?></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- LAYANAN -->
+    <div class="card p-4 mb-4">
+        <h4 class="fw-bold text-primary mb-3">
+            <span class="title-icon">🛒</span> Layanan
+        </h4>
+        <p><b>Porter:</b> <?= $header['nama_porter'] ?: '-'; ?></p>
+        <p><b>Ojek:</b> <?= $header['nama_ojek'] ?: '-'; ?></p>
     </div>
 
     <!-- TABEL ANGGOTA -->
     <div class="card p-4">
-        <h4 class="fw-bold text-info mb-3">👥 Daftar Anggota Pendaki</h4>
+        <h4 class="fw-bold text-info mb-3">
+            <span class="title-icon">👥</span> Daftar Anggota Pendaki
+        </h4>
 
         <table class="table table-bordered table-hover">
             <thead class="table-success">
                 <tr>
-                    <th>ID Anggota</th>
+                    <th>No</th>
                     <th>Nama</th>
                     <th>JK</th>
                     <th>NIK</th>
@@ -162,15 +197,33 @@ body::before {
                 </tr>
             </thead>
             <tbody>
-                <?php while ($r = $anggota->fetch_assoc()): ?>
+                <?php 
+                $no = 1; 
+                mysqli_data_seek($anggota, 0); 
+                while ($r = $anggota->fetch_assoc()): ?>
                     <tr>
-                        <td><?= $r['anggota_id']; ?></td>
+                        <td><?= $no++; ?></td>
                         <td><?= $r['nama_anggota']; ?></td>
                         <td><?= $r['jenis_kelamin']; ?></td>
                         <td><?= $r['nik']; ?></td>
 
-                        <td><?= $r['ktp'] ? "<img src='../uploads/{$r['ktp']}' class='img-thumb'>" : "-"; ?></td>
-                        <td><?= $r['surat_sehat'] ? "<img src='../uploads/{$r['surat_sehat']}' class='img-thumb'>" : "-"; ?></td>
+                        <td>
+                            <?php if ($r['ktp']): ?>
+                                <a href="../uploads/ktp/<?= $r['ktp']; ?>" target="_blank">
+                                    <img src="../uploads/ktp/<?= $r['ktp']; ?>" class="img-thumb">
+                                </a><br>
+                                <small class="text-muted">Klik untuk perbesar</small>
+                            <?php else: echo "-"; endif; ?>
+                        </td>
+
+                        <td>
+                            <?php if ($r['surat_sehat']): ?>
+                                <a href="../uploads/surat_sehat/<?= $r['surat_sehat']; ?>" target="_blank">
+                                    <img src="../uploads/surat_sehat/<?= $r['surat_sehat']; ?>" class="img-thumb">
+                                </a><br>
+                                <small class="text-muted">Klik untuk perbesar</small>
+                            <?php else: echo "-"; endif; ?>
+                        </td>
                     </tr>
                 <?php endwhile; ?>
             </tbody>

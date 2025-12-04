@@ -1,7 +1,8 @@
 <?php
 // search_data.php
 header('Content-Type: application/json; charset=utf-8');
-include '../backend/koneksi.php';
+include '../includes/auth_admin.php';   // proteksi admin
+include '../backend/koneksi.php';       // koneksi database
 
 $q      = isset($_GET['q']) ? $conn->real_escape_string(trim($_GET['q'])) : '';
 $status = isset($_GET['status']) ? $conn->real_escape_string(trim($_GET['status'])) : '';
