@@ -1,151 +1,277 @@
 <?php
 $page_title = 'Data Pesanan';
-include '../includes/auth_admin.php';   // proteksi admin
-include '../backend/koneksi.php';       // koneksi database
+include '../includes/auth_admin.php';
+include '../backend/koneksi.php';
 
-// pastikan $where selalu terdefinisi sebelum dipakai
-$where = "";
+// Ambil filter
+$cari       = $_GET['cari']       ?? '';
+$statusPes  = $_GET['status_pes'] ?? '';
+$statusPay  = $_GET['status_pay'] ?? '';
+$jalur      = $_GET['jalur']      ?? '';
+$bulan      = $_GET['bulan']      ?? '';
+$from       = $_GET['from']       ?? '';
+$to         = $_GET['to']         ?? '';
 
-// jika ada parameter pencarian, buat klausa WHERE
-if (!empty($_GET['cari'])) {
-    $c = $conn->real_escape_string($_GET['cari']);
-    $where = "WHERE nama_ketua LIKE '%$c%' OR pesanan_id LIKE '%$c%' OR kode_token LIKE '%$c%'";
+// Build WHERE
+$where = "WHERE 1=1";
+
+if ($cari !== '') {
+    $c = $conn->real_escape_string($cari);
+    $where .= " AND (p.kode_token LIKE '%$c%' 
+                OR p.nama_ketua LIKE '%$c%' 
+                OR p.pesanan_id LIKE '%$c%')";
 }
 
-// query nanti memakai $where yang sudah pasti ada (bisa kosong)
-$q = $conn->query("SELECT * FROM pesanan $where ORDER BY tanggal_pesan DESC");
+if ($statusPes !== '') {
+    $where .= " AND p.status_pesanan='$statusPes'";
+}
+
+if ($statusPay !== '') {
+    $where .= " AND pb.status_pembayaran='$statusPay'";
+}
+
+if ($jalur !== '') {
+    $where .= " AND jp.jalur_id='$jalur'";
+}
+
+if ($bulan !== '') {
+    $where .= " AND DATE_FORMAT(p.tanggal_pesan,'%Y-%m')='$bulan'";
+}
+
+if ($from !== '' && $to !== '') {
+    $where .= " AND p.tanggal_pesan BETWEEN '$from' AND '$to'";
+}
+
+// Query utama FIXED
+$sql = "
+    SELECT 
+        p.pesanan_id, p.kode_token, p.nama_ketua, p.jumlah_pendaki,
+        p.tanggal_pesan, p.status_pesanan,
+
+        jp.nama_jalur,
+
+        g.nama_guide,
+        pr.nama_porter,
+        oj.nama_ojek,
+
+        pb.jumlah_bayar, pb.tanggal_bayar, pb.status_pembayaran
+
+    FROM pesanan p
+
+    LEFT JOIN pendakian pd 
+        ON p.pendakian_id = pd.pendakian_id
+
+    LEFT JOIN jalur_pendakian jp 
+        ON pd.jalur_id = jp.jalur_id
+
+    LEFT JOIN guide g 
+        ON p.guide_id = g.guide_id
+
+    LEFT JOIN porter pr 
+        ON p.porter_id = pr.porter_id
+
+    LEFT JOIN ojek oj 
+        ON p.ojek_id = oj.ojek_id
+
+    LEFT JOIN pembayaran pb 
+        ON p.pesanan_id = pb.pesanan_id
+
+    $where
+    ORDER BY p.tanggal_pesan DESC
+";
+
+
+
+$q = $conn->query($sql);
 ?>
 <!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <title>Data Pesanan - Admin</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="admin-style.css">
-</head>
-<body>
 
+  <style>
+    th.sortable { cursor:pointer; }
+    th.sortable:hover { color:#198754; }
+  </style>
+</head>
+
+<body>
 <div class="app-wrap">
 
-  <?php include 'sidebar.php'; ?>
-  <div class="main">
+<?php include 'sidebar.php'; ?>
+<div class="main">
+<?php include 'navbar.php'; ?>
 
-    <?php include 'navbar.php'; ?>
+<div class="container-fluid mt-3">
 
-    <div class="container-fluid mt-3">
+<h3 class="fw-bold text-success mb-3">Data Pesanan</h3>
 
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-success">Data Pesanan</h3>
-        <a href="dashboard_1.php" class="btn btn-success">⬅ Kembali ke Dashboard</a>
-      </div>
+<!-- FILTER -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
 
-      <!-- Pencarian -->
-      <form method="GET" class="mb-3">
-        <div class="input-group">
-          <input type="text" name="cari" class="form-control" placeholder="Cari nama ketua, ID pesanan, kode token..."
-                 value="<?= isset($_GET['cari']) ? htmlspecialchars($_GET['cari']) : '' ?>">
-          <button type="submit" class="btn btn-success">Cari</button>
-          <a href="export_pesanan.php" class="btn btn-danger ms-2">Cetak PDF</a>
-        </div>
-      </form>
+<form method="GET">
+<div class="row g-2">
 
-      <!-- Tabel -->
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
+    <div class="col-md-3">
+        <input type="text" name="cari" class="form-control"
+               placeholder="Cari ketua / kode"
+               value="<?= htmlspecialchars($cari) ?>">
+    </div>
 
-          <table class="table table-hover align-middle">
-            <thead class="table-success">
-  <tr>
-    <th>No</th>
-    <th>Kode Token</th>
-    <th>Nama Ketua</th>
-    <th>Jumlah Pendaki</th>
-    <th>Status</th>
-    <th>Tanggal Pesan</th>
-    <th>Aksi</th>
-  </tr>
-</thead>
+    <div class="col-md-2">
+        <select name="status_pes" class="form-select">
+            <option value="">Status Pesanan</option>
+            <option value="menunggu_konfirmasi" <?= $statusPes=='menunggu_konfirmasi'?'selected':''?>>Menunggu</option>
+            <option value="berhasil" <?= $statusPes=='berhasil'?'selected':''?>>Berhasil</option>
+            <option value="dibatalkan" <?= $statusPes=='dibatalkan'?'selected':''?>>Dibatalkan</option>
+        </select>
+    </div>
 
+    <div class="col-md-2">
+        <select name="status_pay" class="form-select">
+            <option value="">Status Pembayaran</option>
+            <option value="pending" <?= $statusPay=='pending'?'selected':''?>>Pending</option>
+            <option value="terkonfirmasi" <?= $statusPay=='terkonfirmasi'?'selected':''?>>Terkonfirmasi</option>
+            <option value="ditolak" <?= $statusPay=='ditolak'?'selected':''?>>Ditolak</option>
+        </select>
+    </div>
 
-            <tbody>
-<?php
-$q = $conn->query("SELECT * FROM pesanan $where ORDER BY tanggal_pesan DESC");
+    <div class="col-md-2">
+        <select name="jalur" class="form-select">
+            <option value="">Jalur Pendakian</option>
+            <?php
+            $rj = $conn->query("SELECT jalur_id, nama_jalur FROM jalur_pendakian");
+            while($jj = $rj->fetch_assoc()):
+            ?>
+            <option value="<?= $jj['jalur_id'] ?>" 
+                <?= $jalur==$jj['jalur_id']?'selected':''?>>
+                <?= $jj['nama_jalur'] ?>
+            </option>
+            <?php endwhile; ?>
+        </select>
+    </div>
 
-$no = 1;
+    <div class="col-md-2">
+        <input type="month" name="bulan" class="form-control"
+               value="<?= htmlspecialchars($bulan) ?>">
+    </div>
 
-if ($q->num_rows > 0):
-    while ($r = $q->fetch_assoc()):
+    <div class="col-md-2">
+        <input type="date" name="from" class="form-control"
+               value="<?= htmlspecialchars($from) ?>">
+    </div>
 
-        $status = $r['status_pesanan'];
+    <div class="col-md-2">
+        <input type="date" name="to" class="form-control"
+               value="<?= htmlspecialchars($to) ?>">
+    </div>
 
-        switch ($status) {
-            case 'menunggu_konfirmasi':
-                $badge = "<span class='badge bg-warning text-dark'>Menunggu Konfirmasi</span>";
-                break;
-            case 'berhasil':
-                $badge = "<span class='badge bg-success'>Berhasil</span>";
-                break;
-            case 'dibatalkan':
-                $badge = "<span class='badge bg-danger'>Dibatalkan</span>";
-                break;
-            default:
-                $badge = "<span class='badge bg-secondary'>$status</span>";
-                break;
-        }
-?>
-<tr>
-    <!-- NO URUT -->
-    <td><?= $no++; ?></td>
+    <div class="col-md-2">
+        <button class="btn btn-success w-100">Filter</button>
+    </div>
 
-    <!-- KODE TOKEN -->
-    <td class="fw-bold"><?= $r['kode_token'] ?></td>
-
-    <!-- NAMA KETUA -->
-    <td><?= $r['nama_ketua'] ?></td>
-
-    <!-- JUMLAH -->
-    <td><?= $r['jumlah_pendaki'] ?></td>
-
-    <!-- STATUS -->
-    <td><?= $badge ?></td>
-
-    <!-- TANGGAL -->
-    <td><?= $r['tanggal_pesan'] ?></td>
-
-    <!-- AKSI -->
-    <td>
-        <a href="detail_pesanan.php?id=<?= $r['pesanan_id'] ?>" 
-           class="btn btn-info btn-sm btn-aksi">Detail</a>
-
-        <?php if ($status == 'menunggu_konfirmasi'): ?>
-            <a href="../backend/proses_konfirmasi.php?id=<?= $r['pesanan_id'] ?>" 
-               class="btn btn-success btn-sm btn-aksi">Konfirmasi</a>
-
-            <a href="../backend/proses_tolak.php?id=<?= $r['pesanan_id'] ?>" 
-               class="btn btn-danger btn-sm btn-aksi">Tolak</a>
-        <?php endif; ?>
-    </td>
-</tr>
-<?php
-    endwhile;
-else:
-    echo "<tr><td colspan='7' class='text-center text-muted py-3'>Tidak ada data ditemukan.</td></tr>";
-endif;
-?>
-
-            </tbody>
-
-          </table>
-
-        </div>
-      </div>
+</div>
+</form>
 
     </div>
-  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- TABEL -->
+<div class="card shadow-sm">
+<div class="card-body">
+
+<div class="table-responsive">
+<table class="table table-hover align-middle" id="dataTable">
+
+<thead class="table-success">
+<tr>
+    <th class="sortable">Kode Token</th>
+    <th class="sortable">Ketua</th>
+    <th class="sortable">Jalur</th>
+    <th class="sortable">Layanan</th>
+    <th class="sortable">Pendaki</th>
+    <th class="sortable">Status</th>
+    <th class="sortable">Total Bayar</th>
+    <th class="sortable">Tgl Pesan</th>
+    <th>Aksi</th>
+</tr>
+</thead>
+
+<tbody>
+<?php while($r = $q->fetch_assoc()): ?>
+
+<?php
+// badge status pesanan
+$stPes = $r['status_pesanan'];
+if ($stPes == 'berhasil') $b1 = "<span class='badge bg-success'>Berhasil</span>";
+elseif ($stPes == 'menunggu_konfirmasi') $b1 = "<span class='badge bg-warning text-dark'>Menunggu</span>";
+else $b1 = "<span class='badge bg-danger'>Batal</span>";
+
+// badge status bayar
+$stPay = $r['status_pembayaran'] ?? 'pending';
+if ($stPay == 'terkonfirmasi') $b2 = "<span class='badge bg-success'>Lunas</span>";
+elseif ($stPay == 'pending') $b2 = "<span class='badge bg-warning text-dark'>Pending</span>";
+else $b2 = "<span class='badge bg-danger'>Ditolak</span>";
+
+// gabungan layanan
+$layanan = "
+Guide: ".($r['nama_guide'] ?? '-')."<br>
+Porter: ".($r['nama_porter'] ?? '-')."<br>
+Ojek: ".($r['nama_ojek'] ?? '-')."
+";
+?>
+
+<tr>
+    <td class="fw-bold"><?= $r['kode_token'] ?></td>
+    <td><?= $r['nama_ketua'] ?></td>
+    <td><?= $r['nama_jalur'] ?? '-' ?></td>
+    <td><?= $layanan ?></td>
+    <td><?= $r['jumlah_pendaki'] ?></td>
+    <td><?= $b1 ?> <br><?= $b2 ?></td>
+    <td>Rp <?= number_format($r['jumlah_bayar'] ?? 0,0,',','.') ?></td>
+    <td><?= $r['tanggal_pesan'] ?></td>
+    <td>
+        <a href="detail_pesanan.php?id=<?= $r['pesanan_id'] ?>" class="btn btn-info btn-sm">Detail</a>
+    </td>
+</tr>
+
+<?php endwhile; ?>
+</tbody>
+
+</table>
+</div>
+
+</div>
+</div>
+
+</div></div>
+</div>
+
+<!-- SORTING -->
+<script>
+document.querySelectorAll("th.sortable").forEach((th, idx) => {
+    th.addEventListener("click", () => {
+        const table = th.closest("table");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const asc = th.classList.toggle("asc");
+
+        rows.sort((a,b)=>{
+            let A = a.children[idx].innerText.toLowerCase();
+            let B = b.children[idx].innerText.toLowerCase();
+            return asc ? A.localeCompare(B) : B.localeCompare(A);
+        });
+
+        rows.forEach(r => tbody.appendChild(r));
+    });
+});
+</script>
+
 </body>
 </html>
