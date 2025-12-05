@@ -175,9 +175,9 @@
 
     <a href="jalur_pendakian.php" class="menu-item"><i class="fa-solid fa-map-location-dot"></i> Jalur Pendakian</a>
     <a href="laporan.php" class="menu-item"><i class="fa-solid fa-file-lines"></i> Laporan</a>
-    <a href="admin_manage.php" class="menu-item"><i class="fa-solid fa-user-shield"></i> Manajemen Admin</a>
+    <a href="manajemen_admin.php" class="menu-item"><i class="fa-solid fa-user-shield"></i> Manajemen Admin</a>
 
-    <a href="../logout.php" class="menu-item logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    <a href="../backend/logout.php" class="menu-item logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
 
 </div>
 
