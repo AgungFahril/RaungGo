@@ -50,7 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 🔎 Validasi wajib
     if (empty($nik) || empty($tempat_lahir) || empty($tanggal_lahir) || empty($jenis_kelamin) || empty($alamat) || empty($no_hp)) {
-        echo "<script>alert('Harap lengkapi semua kolom wajib.');</script>";
+        $_SESSION['alert_message'] = 'Harap lengkapi semua kolom wajib.';
+        $_SESSION['alert_type'] = 'error';
     } else {
         $stmt = $conn->prepare("
             INSERT INTO pendaki_detail (
@@ -65,9 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         if ($stmt->execute()) {
-            echo "<script>alert('Data diri berhasil disimpan!'); window.location='sop.php';</script>";
+            $_SESSION['alert_message'] = 'Data diri berhasil disimpan!';
+            $_SESSION['alert_type'] = 'success';
+            echo "<script>window.location='sop.php';</script>";
+            exit;
         } else {
-            echo "<script>alert('Gagal menyimpan data: " . addslashes($conn->error) . "');</script>";
+            $_SESSION['alert_message'] = 'Gagal menyimpan data: ' . $conn->error;
+            $_SESSION['alert_type'] = 'error';
         }
         $stmt->close();
     }
@@ -98,10 +103,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #2e7d32;
             margin-bottom: 25px;
         }
+        
+        /* Alert Styles */
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease;
+        }
+        .alert-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         label {
             font-weight: 600;
             margin-top: 10px;
             display: block;
+        }
+        label .required {
+            color: #dc3545;
         }
         input, select, textarea {
             width: 100%;
@@ -119,9 +162,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
+            width: 100%;
         }
         button:hover {
             background-color: #2e7d32;
+        }
+        
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+            font-size: 16px;
+        }
+        .info-box p {
+            margin: 0;
+            color: #0d47a1;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -134,6 +196,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <main class="container">
     <h2>📝 Lengkapi Data Diri Pendaki</h2>
 
+    <?php
+    // Tampilkan alert jika ada
+    if (isset($_SESSION['alert_message'])) {
+        $alert_type = $_SESSION['alert_type'] ?? 'warning';
+        echo '<div class="alert alert-' . $alert_type . '">';
+        echo htmlspecialchars($_SESSION['alert_message']);
+        echo '</div>';
+        unset($_SESSION['alert_message']);
+        unset($_SESSION['alert_type']);
+    }
+    ?>
+
+    <div class="info-box">
+        <h3>⚠️ Perhatian!</h3>
+        <p>Anda harus melengkapi data diri terlebih dahulu sebelum dapat mengakses menu booking dan fitur lainnya. Pastikan semua data yang diisi benar dan akurat.</p>
+    </div>
+
     <form method="POST">
         <label>Nama Lengkap</label>
         <input type="text" value="<?= htmlspecialchars($user['nama'] ?? '') ?>" disabled>
@@ -141,50 +220,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label>Email</label>
         <input type="email" value="<?= htmlspecialchars($user['email'] ?? '') ?>" disabled>
 
-        <label>NIK</label>
-        <input type="text" name="nik" required>
+        <label>NIK <span class="required">*</span></label>
+        <input type="text" name="nik" placeholder="Masukkan NIK 16 digit" maxlength="16" required>
 
-        <label>Tempat Lahir</label>
-        <input type="text" name="tempat_lahir" required>
+        <label>Tempat Lahir <span class="required">*</span></label>
+        <input type="text" name="tempat_lahir" placeholder="Contoh: Jakarta" required>
 
-        <label>Tanggal Lahir</label>
+        <label>Tanggal Lahir <span class="required">*</span></label>
         <input type="date" name="tanggal_lahir" required>
 
-        <label>Jenis Kelamin</label>
+        <label>Jenis Kelamin <span class="required">*</span></label>
         <select name="jenis_kelamin" required>
             <option value="">-- Pilih --</option>
             <option value="L">Laki-laki</option>
             <option value="P">Perempuan</option>
         </select>
 
-        <label>Kewarganegaraan</label>
-        <input type="text" name="kewarganegaraan" required>
+        <label>Kewarganegaraan <span class="required">*</span></label>
+        <input type="text" name="kewarganegaraan" value="Indonesia" required>
 
-        <label>Alamat Lengkap</label>
-        <textarea name="alamat" rows="3" required></textarea>
+        <label>Alamat Lengkap <span class="required">*</span></label>
+        <textarea name="alamat" rows="3" placeholder="Masukkan alamat lengkap sesuai KTP" required></textarea>
 
-        <label>No. HP</label>
-        <input type="text" name="no_hp" required>
+        <label>No. HP <span class="required">*</span></label>
+        <input type="text" name="no_hp" placeholder="08xxxxxxxxxx" required>
 
-        <label>No. Telepon Darurat</label>
-        <input type="text" name="no_darurat" required>
+        <label>No. Telepon Darurat <span class="required">*</span></label>
+        <input type="text" name="no_darurat" placeholder="08xxxxxxxxxx" required>
 
-        <label>Hubungan dengan Kontak Darurat</label>
-        <input type="text" name="hubungan_darurat" required>
+        <label>Hubungan dengan Kontak Darurat <span class="required">*</span></label>
+        <input type="text" name="hubungan_darurat" placeholder="Contoh: Orang Tua, Saudara, Pasangan" required>
 
-        <label>Provinsi</label>
-        <input type="text" name="provinsi" required>
+        <label>Provinsi <span class="required">*</span></label>
+        <input type="text" name="provinsi" placeholder="Contoh: Jawa Timur" required>
 
-        <label>Kabupaten</label>
-        <input type="text" name="kabupaten" required>
+        <label>Kabupaten <span class="required">*</span></label>
+        <input type="text" name="kabupaten" placeholder="Contoh: Malang" required>
 
-        <label>Kecamatan</label>
-        <input type="text" name="kecamatan" required>
+        <label>Kecamatan <span class="required">*</span></label>
+        <input type="text" name="kecamatan" placeholder="Contoh: Lowokwaru" required>
 
-        <label>Kelurahan</label>
-        <input type="text" name="kelurahan" required>
+        <label>Kelurahan <span class="required">*</span></label>
+        <input type="text" name="kelurahan" placeholder="Contoh: Dinoyo" required>
 
-        <button type="submit">Simpan dan Lanjut ke SOP</button>
+        <button type="submit">💾 Simpan dan Lanjutkan</button>
     </form>
 </main>
 

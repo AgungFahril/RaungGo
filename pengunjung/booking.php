@@ -1,6 +1,11 @@
 <?php
 session_start();
 include '../backend/koneksi.php';
+
+// ========== TAMBAHKAN BARIS INI ==========
+include 'check_data_lengkap.php'; // Validasi data lengkap
+// =========================================
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 

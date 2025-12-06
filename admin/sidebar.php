@@ -126,22 +126,13 @@
     .arrow {
         margin-left: auto;
         transition: 0.3s;
-        transform: rotate(-90deg); /* default = kanan */
+        transform: rotate(-90deg);
     }
 
     .arrow.rotate {
-        transform: rotate(0deg); /* terbuka = bawah */
+        transform: rotate(0deg);
     }
 
-    /* LOGOUT */
-    .logout {
-        margin-top: auto;
-        background: rgba(255, 60, 60, 0.15);
-    }
-
-    .logout:hover {
-        background: rgba(255, 60, 60, 0.3);
-    }
 </style>
 
 <div class="sidebar">
@@ -177,7 +168,6 @@
     <a href="laporan.php" class="menu-item"><i class="fa-solid fa-file-lines"></i> Laporan</a>
     <a href="manajemen_admin.php" class="menu-item"><i class="fa-solid fa-user-shield"></i> Manajemen Admin</a>
 
-    <a href="../backend/logout.php" class="menu-item logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
 
 </div>
 
@@ -201,7 +191,7 @@
         }
     });
 
-    // Toggle submenu on click
+    // Toggle submenu
     document.querySelector(".submenu-toggle").addEventListener("click", () => {
         const submenu = document.querySelector(".submenu");
         const arrow = document.querySelector(".arrow");
