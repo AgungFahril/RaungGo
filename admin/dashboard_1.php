@@ -430,37 +430,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <!-- CHARTS -->
 <div class="row g-4">
-
-  <div class="col-lg-8">
-    <div class="card shadow-sm border-0" style="height: 420px;">
-      <div class="card-header bg-success">
-        Pesanan per Bulan (6 bulan terakhir)
-      </div>
-      <div class="card-body p-3 chart-wrap">
-        <canvas id="lineChart"></canvas>
-      </div>
-    </div>
+  <!-- POWER BI IFRAME -->
+<div class="card shadow-sm border-0 mt-4" style="height: 820px;">
+  <div class="card-header bg-success text-white fw-bold">
+    Dashboard PowerBI
   </div>
-
-  <div class="col-lg-4 d-flex flex-column gap-3">
-
-    <div class="card shadow-sm border-0" style="height: 220px;">
-      <div class="card-header bg-success">Persentase Jalur</div>
-      <div class="card-body d-flex justify-content-center align-items-center">
-        <canvas id="pieChart" style="max-width: 240px; max-height:200px;"></canvas>
-      </div>
-    </div>
-
-    <div class="insight-box p-3">
-      <div class="fw-bold mb-2">Insight Cepat</div>
-      <div class="small-muted">
-        <?php foreach($insight as $ins) echo "<div style='margin-bottom:6px;'>$ins</div>"; ?>
-      </div>
-    </div>
-
+  <div class="card-body p-0">
+    <iframe 
+      title="Dashboard Admin"
+      width="100%" 
+      height="800"
+      src="https://app.powerbi.com/view?r=eyJrIjoiMDk2ZmE3ODQtYWZiNS00YTg2LTg2ZjMtOTlmNDg4NWUwMTdiIiwidCI6ImE2OWUxOWU4LWYwYTQtNGU3Ny1iZmY2LTk1NjRjODgxOWIxNCJ9"
+      frameborder="0" 
+      allowFullScreen="true">
+    </iframe>
   </div>
-
 </div>
+
+
+
+
+
+  
+
 
 <!-- SEARCH / FILTER -->
 <div class="search-section mt-4">
