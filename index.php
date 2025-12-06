@@ -45,19 +45,6 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
         </div>
     </section>
 
-    <!-- 📊 Statistik Pendaki -->
-    <section class="stats-section">
-        <div class="stat-card">
-            <p class="stat-number">20,484</p>
-            <p class="stat-label">Gunung Raung</p>
-            <span>Jumlah pendaki tahun 2025</span>
-        </div>
-        <div class="stat-card">
-            <p class="stat-number">5,000</p>
-            <p class="stat-label">Kawah Ijen</p>
-            <span>Jumlah pendaki tahun 2025</span>
-        </div>
-    </section>
 
     <!-- 📋 Alur Booking -->
     <section class="info-section">
