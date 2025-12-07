@@ -1,5 +1,5 @@
 <?php
-// backend/proses_booking.php — versi perbaikan final
+// backend/proses_booking.php - FIXED UNTUK MOBILE & LAPTOP
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -7,10 +7,10 @@ error_reporting(E_ALL);
 session_start();
 include 'koneksi.php';
 
-// Path log (opsional) - buat folder logs jika perlu
+// Path log
 $logFile = __DIR__ . '/logs/booking_error.log';
 
-// ---------- Konfigurasi ----------
+// Konfigurasi
 $MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 $ALLOWED_EXT = ['jpg','jpeg','png','pdf'];
 
@@ -25,7 +25,6 @@ function log_error($msg){
     @file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
 }
 
-// Helper upload untuk single field dari $_FILES
 function move_uploaded_field($f, $destDir, $prefix = '', $MAX_FILE_SIZE = 5242880, $ALLOWED_EXT = ['jpg','jpeg','png','pdf']){
     if (!is_array($f)) throw new Exception("Parameter file tidak valid.");
     if (!isset($f['error'])) throw new Exception("File tidak ditemukan.");
@@ -51,24 +50,18 @@ function move_uploaded_field($f, $destDir, $prefix = '', $MAX_FILE_SIZE = 524288
     return $filename;
 }
 
-// Helper: ambil tarif dari table (guide/porter/ojek)
 function get_tarif($conn, $table, $idField, $idVal){
     if (empty($idVal)) return 0;
-
     $sql = "SELECT tarif FROM `$table` WHERE `$idField` = ? LIMIT 1";
     $st = $conn->prepare($sql);
     if (!$st) throw new Exception("Prepare get_tarif gagal: " . $conn->error);
-
     $st->bind_param("i", $idVal);
     $st->execute();
     $r = $st->get_result()->fetch_assoc();
     $st->close();
-
     return intval($r['tarif'] ?? 0);
 }
 
-
-// Helper: ambil file anggota dari struktur $_FILES['anggota']
 function file_from_anggota_index($index, $key){
     if (!isset($_FILES['anggota'])) return null;
     if (!isset($_FILES['anggota']['name'][$index][$key])) return null;
@@ -81,7 +74,6 @@ function file_from_anggota_index($index, $key){
     ];
 }
 
-// Helper: buat reference array untuk call_user_func_array
 function refValues($arr){
     $refs = [];
     foreach($arr as $k => $v) $refs[$k] = &$arr[$k];
@@ -95,9 +87,9 @@ try {
     if (!isset($_SESSION['user_id'])) send_alert_back('Silakan login terlebih dahulu.');
     $user_id = intval($_SESSION['user_id']);
 
-    // Ambil POST
-    $pendakian_id   = isset($_POST['pendakian_id']) ? intval($_POST['pendakian_id']) : 0;
-    $jumlah_pendaki = isset($_POST['jumlah_pendaki']) ? intval($_POST['jumlah_pendaki']) : 0;
+    // FIXED: Triple fallback untuk mobile (POST > POST_BACKUP > SESSION)
+    $pendakian_id = intval($_POST['pendakian_id'] ?? $_POST['pendakian_id_backup'] ?? $_SESSION['selected_pendakian'] ?? 0);
+    $jumlah_pendaki = intval($_POST['jumlah_pendaki'] ?? $_POST['jumlah_pendaki_backup'] ?? $_SESSION['jumlah_pendaki'] ?? 0);
 
     $nama_ketua     = trim($_POST['nama_ketua'] ?? '');
     $telepon_ketua  = trim($_POST['telepon_ketua'] ?? '');
@@ -111,9 +103,14 @@ try {
     $tanggal_pesan = date('Y-m-d H:i:s');
     $status_pesanan = 'menunggu_pembayaran';
 
-    // Validasi dasar
+    // Validasi dasar dengan pesan detail
     if (!$pendakian_id || $jumlah_pendaki <= 0) {
-        throw new Exception("Data booking tidak lengkap (pendakian / jumlah).");
+        $debug_msg = "pendakian_id=" . ($pendakian_id ?: 'kosong') . 
+                     ", jumlah=" . ($jumlah_pendaki ?: 'kosong') . 
+                     ", session_pid=" . ($_SESSION['selected_pendakian'] ?? 'kosong') .
+                     ", session_jp=" . ($_SESSION['jumlah_pendaki'] ?? 'kosong');
+        log_error("Validasi gagal: " . $debug_msg);
+        throw new Exception("Data booking tidak lengkap (pendakian / jumlah). Debug: " . $debug_msg);
     }
     if (!preg_match('/^\d{16}$/', $no_identitas)) {
         throw new Exception("NIK ketua harus 16 digit.");
@@ -163,7 +160,6 @@ try {
 
     $total_tiket = $tarif_tiket * $jumlah_pendaki;
     $total_layanan = $tarif_guide + $tarif_porter + $tarif_ojek;
-    // total_bayar boleh dikirim dari frontend; server harus verifikasi
     $posted_total = isset($_POST['total_bayar']) ? floatval($_POST['total_bayar']) : null;
     $total_bayar = $posted_total ? $posted_total : ($total_tiket + $total_layanan);
 
@@ -175,7 +171,7 @@ try {
     $savedKtpKetua = move_uploaded_field($_FILES['ktp_ketua'], __DIR__ . '/../uploads/ktp', 'ktp_ketua_', $MAX_FILE_SIZE, $ALLOWED_EXT);
     $savedSehatKetua = move_uploaded_field($_FILES['sehat_ketua'], __DIR__ . '/../uploads/surat_sehat', 'sehat_ketua_', $MAX_FILE_SIZE, $ALLOWED_EXT);
 
-    // Insert pesanan — build query dinamis agar NULL dapat disimpan
+    // Insert pesanan - build query dinamis agar NULL dapat disimpan
     $columns = ['user_id','pendakian_id','tanggal_pesan','jumlah_pendaki','total_bayar','status_pesanan','kode_token','guide_id','porter_id','ojek_id','nama_ketua','telepon_ketua','alamat_ketua','no_identitas'];
     $values = [];
     $placeholders = [];
@@ -205,15 +201,13 @@ try {
 
     foreach ($columns as $col) {
         $val = $mapping[$col];
-        // untuk kolom guide/porter/ojek: jika null -> gunakan literal NULL di query
         if (in_array($col, ['guide_id','porter_id','ojek_id']) && ($val === null || $val === '')) {
             $placeholders[] = "NULL";
         } else {
             $placeholders[] = "?";
             $params[] = $val;
-            // type selection
             if (in_array($col, ['user_id','pendakian_id','jumlah_pendaki'])) $types .= 'i';
-            else if ($col === 'total_bayar') $types .= 'd'; // decimal
+            else if ($col === 'total_bayar') $types .= 'd';
             else $types .= 's';
         }
     }
@@ -260,12 +254,10 @@ try {
     // Simpan ketua ke pesanan_anggota juga (jika tabel ada)
     $hasPesananAnggota = (int)$conn->query("SHOW TABLES LIKE 'pesanan_anggota'")->num_rows;
     if ($hasPesananAnggota) {
-        // build insert dynamic untuk ketua (handle NULL porter/ojek)
         $colsPA = ['pesanan_id','nama','nik','ktp','surat_sehat','porter_id','ojek_id','porter_harga','ojek_harga'];
         $place = [];
         $paramsPA = [];
         $typesPA = '';
-        // compute harga ketua
         $ket_porter_harga = $porter_id ? get_tarif($conn,'porter','porter_id',$porter_id) : 0;
         $ket_ojek_harga   = $ojek_id ? get_tarif($conn,'ojek','ojek_id',$ojek_id) : 0;
 
@@ -274,7 +266,6 @@ try {
                 $place[] = "NULL";
             } else {
                 $place[] = "?";
-                // map value
                 if ($c === 'pesanan_id') { $paramsPA[] = $pesanan_id; $typesPA .= 'i'; }
                 elseif ($c === 'nama') { $paramsPA[] = $nama_ketua; $typesPA .= 's'; }
                 elseif ($c === 'nik') { $paramsPA[] = $no_identitas; $typesPA .= 's'; }
@@ -297,17 +288,16 @@ try {
         $stmtK->close();
     }
 
-    // Simpan juga ke anggota_pendaki (tabel daftar anggota pendaki) — catat ketua juga
+    // Simpan juga ke anggota_pendaki (tabel daftar anggota pendaki) - catat ketua juga
     $hasAnggotaPendaki = (int)$conn->query("SHOW TABLES LIKE 'anggota_pendaki'")->num_rows;
     if ($hasAnggotaPendaki) {
-        // Normalize jenis_kelamin ke enum values (L atau P)
         $ket_jk = trim($_POST['jenis_kelamin_ketua'] ?? '');
         if ($ket_jk === 'Laki-laki' || $ket_jk === 'L') {
             $ket_jk = 'L';
         } elseif ($ket_jk === 'Perempuan' || $ket_jk === 'P') {
             $ket_jk = 'P';
         } else {
-            $ket_jk = 'P'; // default
+            $ket_jk = 'P';
         }
         
         $stmtAP = $conn->prepare("INSERT INTO anggota_pendaki (pesanan_id, nama_anggota, no_identitas, jenis_kelamin) VALUES (?, ?, ?, ?)");
@@ -319,7 +309,6 @@ try {
 
     // --- Proses anggota lain (array) ---
     if (isset($_POST['anggota']) && is_array($_POST['anggota']) && count($_POST['anggota']) > 0) {
-        // prepare insert pesanan_anggota with dynamic NULL handling inside loop
         foreach ($_POST['anggota'] as $idx => $adata) {
             $namaA = trim($adata['nama'] ?? '');
             $nikA  = trim($adata['nik'] ?? '');
@@ -330,22 +319,18 @@ try {
             if ($namaA === '' || $nikA === '') throw new Exception("Data anggota tidak lengkap (nama/nik).");
             if (!preg_match('/^\d{16}$/', $nikA)) throw new Exception("NIK anggota {$namaA} harus 16 digit.");
 
-            // Ambil file KTP & Sehat untuk anggota index $idx
             $fileK = file_from_anggota_index($idx, 'ktp');
             $fileS = file_from_anggota_index($idx, 'sehat');
             if (!$fileK || !$fileS) throw new Exception("File KTP atau Surat Sehat untuk anggota {$namaA} (index {$idx}) belum lengkap.");
 
-            // pindahkan file
             $savedK = move_uploaded_field($fileK, __DIR__ . '/../uploads/ktp', 'ktp_angg_',$MAX_FILE_SIZE,$ALLOWED_EXT);
             $savedS = move_uploaded_field($fileS, __DIR__ . '/../uploads/surat_sehat', 'sehat_angg_',$MAX_FILE_SIZE,$ALLOWED_EXT);
 
-            // layanan khusus per anggota (boleh null)
             $angg_porter_id = !empty($adata['porter_id']) ? intval($adata['porter_id']) : null;
             $angg_ojek_id   = !empty($adata['ojek_id']) ? intval($adata['ojek_id']) : null;
             $port_harga = $angg_porter_id ? get_tarif($conn,'porter','porter_id',$angg_porter_id) : 0;
             $ojek_harga = $angg_ojek_id ? get_tarif($conn,'ojek','ojek_id',$angg_ojek_id) : 0;
 
-            // build dynamic insert for this anggota
             $colsA = ['pesanan_id','nama','nik','ktp','surat_sehat','porter_id','ojek_id','porter_harga','ojek_harga'];
             $placeA = [];
             $paramsA = [];
@@ -376,16 +361,14 @@ try {
             if (!$stmtA->execute()) throw new Exception("Gagal menyimpan pesanan_anggota untuk {$namaA}: " . $stmtA->error);
             $stmtA->close();
 
-            // insert ke anggota_pendaki bila tabel ada
             if ($hasAnggotaPendaki) {
-                // Normalize jenis_kelamin ke enum values (L atau P)
                 $jkA_normalized = $jkA;
                 if ($jkA === 'Laki-laki' || $jkA === 'L') {
                     $jkA_normalized = 'L';
                 } elseif ($jkA === 'Perempuan' || $jkA === 'P') {
                     $jkA_normalized = 'P';
                 } else {
-                    $jkA_normalized = 'P'; // default
+                    $jkA_normalized = 'P';
                 }
                 
                 $stmtAP2 = $conn->prepare("INSERT INTO anggota_pendaki (pesanan_id, nama_anggota, no_identitas, jenis_kelamin) VALUES (?, ?, ?, ?)");
@@ -411,7 +394,7 @@ try {
     // clear session selection
     unset($_SESSION['selected_pendakian'], $_SESSION['jumlah_pendaki']);
 
-    // Redirect with SweetAlert (tampilkan token lalu ke pembayaran)
+    // Redirect with SweetAlert
     ?>
     <!doctype html>
     <html lang="id">
@@ -433,14 +416,11 @@ try {
     exit;
 
 } catch (Exception $e) {
-    // rollback jika transaksi dibuka
     if ($inTransaction) {
         try { $conn->rollback(); } catch (Exception $ex) { /* ignore */ }
     }
     $msg = $e->getMessage();
     log_error($msg . " | trace: " . $e->getTraceAsString());
 
-    // jangan tunjukkan detail sensitif — tapi tampilkan pesan yang berguna
     send_alert_back("Terjadi error saat memproses booking: " . $msg);
 }
- 
