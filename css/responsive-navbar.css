@@ -1,637 +1,343 @@
-/* ====================================
-   RESPONSIVE SIDEBAR RAUNG GO
-   Enhanced version with better mobile support
-   ==================================== */
+/* ============================================================ */
+/* === RESPONSIVE NAVBAR - SIMPLE VERSION === */
+/* ============================================================ */
 
-   * {
-    margin: 0;
-    padding: 0;
-}
-/* CRITICAL: Mobile override - harus di paling atas */
+/* === MOBILE (≤ 768px) === */
 @media screen and (max-width: 768px) {
-    html {
-        overflow-x: hidden !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    
+    /* Remove body margin di mobile */
     body {
-        margin: 0 !important;
-        padding: 0 !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
-        overflow-x: hidden !important;
-        position: relative !important;
-        left: 0 !important;
-        right: 0 !important;
-    }
-    
-    body.sidebar-hidden,
-    body.sidebar-open {
         margin-left: 0 !important;
         padding-left: 0 !important;
     }
     
-    /* Pastikan semua container juga full width */
-    body > *:not(.navbar):not(.navbar-overlay):not(.sidebar-show-btn) {
-        margin-left: 0 !important;
-        padding-left: 0 !important;
+    body.no-scroll {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
     }
-}
-
-/* Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Poppins', sans-serif;
-    overflow-x: hidden;
-    transition: margin-left 0.3s ease;
-}
-
-/* ====================================
-   NAVBAR BASE STYLES
-   ==================================== */
-
-.navbar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 250px;
-    height: 100vh;
-    background: linear-gradient(180deg, #2c5f2d 0%, #1e4620 100%);
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.3s ease;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-/* Sidebar Header */
-.sidebar-header {
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    text-align: center;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
-}
-
-.nav-brand {
-    display: inline-block;
-    text-decoration: none;
-}
-
-.navbar-logo {
-    max-width: 160px;
-    height: auto;
-    transition: transform 0.3s ease;
-}
-
-.navbar-logo:hover {
-    transform: scale(1.05);
-}
-
-/* Toggle Button (Hide button - Desktop) */
-.sidebar-toggle {
-    position: absolute;
-    right: -15px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #2c5f2d;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: white;
-    z-index: 1001;
-    transition: all 0.3s ease;
-}
-
-.sidebar-toggle:hover {
-    background: #1e4620;
-    transform: translateY(-50%) scale(1.1);
-}
-
-/* Show Button (Outside navbar) */
-.sidebar-show-btn {
-    position: fixed;
-    left: 15px;
-    top: 15px;
-    background: #2c5f2d;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: white;
-    font-size: 20px;
-    z-index: 999;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-}
-
-.sidebar-show-btn:hover {
-    background: #1e4620;
-    transform: scale(1.1);
-}
-
-.sidebar-show-btn span {
-    display: block;
-}
-
-/* Nav Menu */
-.nav-menu {
-    list-style: none;
-    padding: 20px 0;
-    margin: 0;
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.nav-menu li {
-    margin: 0;
-    display: block;
-    width: 100%;
-}
-
-.nav-menu li a,
-.nav-menu li .login-btn,
-.nav-menu li .user-greeting {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-.nav-menu li a {
-    align-items: center;
-    padding: 15px 25px;
-    color: white;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    font-size: 15px;
-    gap: 12px;
-    width: 100%;
-}
-
-.nav-menu li a i {
-    font-size: 18px;
-    min-width: 20px;
-}
-
-.nav-menu li a:hover {
-    background: rgba(255, 255, 255, 0.15);
-    padding-left: 30px;
-}
-
-.nav-menu li.active a {
-    background: rgba(255, 255, 255, 0.2);
-    border-left: 4px solid #fff;
-    font-weight: 600;
-}
-
-/* Login/Logout Buttons */
-.login-btn {
-    display: flex !important;
-    align-items: center;
-    padding: 12px 20px !important;
-    margin: 10px 15px !important;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    gap: 10px;
-    border: none;
-    cursor: pointer;
-    width: calc(100% - 30px) !important;
-}
-
-.btn-login-blue {
-    background: #2196F3 !important;
-    color: white !important;
-}
-
-.btn-login-blue:hover {
-    background: #1976D2 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
-}
-
-.btn-danger {
-    background: #f44336 !important;
-    color: white !important;
-}
-
-.btn-danger:hover {
-    background: #d32f2f !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
-}
-
-/* User Greeting */
-.user-greeting {
-    display: block !important;
-    padding: 12px 20px;
-    color: #fff;
-    font-size: 14px;
-    background: rgba(255, 255, 255, 0.1);
-    margin: 10px 15px;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: 500;
-}
-
-/* Scrollbar */
-.navbar::-webkit-scrollbar {
-    width: 6px;
-}
-
-.navbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.navbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-}
-
-.navbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
-}
-
-/* Overlay untuk mobile */
-.navbar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 998;
-    display: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.navbar-overlay.active {
-    display: block;
-    opacity: 1;
-}
-
-/* =========================================
-   FIX DESKTOP SIDEBAR BEHAVIOR (FINAL)
-   ========================================= */
-@media screen and (min-width: 769px) {
-
-    /* Default desktop: sidebar harus muncul */
+    
+    /* Navbar mobile - slide from left */
     .navbar {
-        transform: translateX(0) !important;
+        position: fixed !important;
         left: 0 !important;
+        top: 0 !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        height: 100vh !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.4s ease !important;
+        z-index: 9999 !important;
+        overflow-y: auto !important;
+        padding: 1rem 0 2rem 0 !important;
     }
-
-    /* Sidebar disembunyikan: geser ke kanan atau kiri */
+    
+    /* Navbar visible */
+    .navbar:not(.hidden) {
+        transform: translateX(0) !important;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    /* Navbar hidden */
     .navbar.hidden {
-        transform: translateX(-100%) !important; /* atau 100% sesuai keinginan */
+        transform: translateX(-100%) !important;
     }
+    
+    /* Sidebar header mobile */
+    .sidebar-header {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+        min-height: auto !important;
+    }
+    
+    .navbar-logo {
+        max-width: 120px !important;
+        width: 70% !important;
+    }
+    
+    /* Menu mobile - always visible inside navbar */
+    .nav-menu {
+        display: flex !important;
+        flex-direction: column !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .nav-menu li {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    .nav-menu li a {
+        display: flex !important;
+        align-items: center !important;
+        gap: 1rem !important;
+        padding: 1rem 1.5rem !important;
+        color: white !important;
+        font-size: 1rem !important;
+        opacity: 1 !important;
+    }
+    
+    /* Tombol hamburger - show button */
+    .sidebar-show-btn {
+        position: fixed !important;
+        top: 15px !important;
+        left: 15px !important;
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 12px !important;
+        z-index: 999 !important;
+        background: var(--leaf-green) !important;
+        color: white !important;
+        border: none !important;
+        font-size: 1.5rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        opacity: 1 !important;
+        pointer-events: all !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
+    }
+    
+    /* Hide hamburger saat navbar terbuka */
+    .sidebar-show-btn:not(.active) {
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Hide tombol toggle desktop di mobile */
+    .sidebar-toggle {
+        display: none !important;
+    }
+    
+    /* Hide overlay */
+    .navbar-overlay {
+        display: none !important;
+    }
+    
+    /* === RESPONSIVE CONTENT === */
+    .hero {
+        min-height: 70vh !important;
+        padding: 6rem 1.5rem 4rem 1.5rem !important;
+        background-attachment: scroll !important;
+    }
+    
+    .hero-content h1 {
+        font-size: 2.2rem !important;
+    }
+    
+    .hero-content p {
+        font-size: 1.05rem !important;
+    }
+    
+    .hero-buttons {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    .hero-buttons .btn {
+        width: 100% !important;
+        padding: 1rem 1.5rem !important;
+    }
+    
+    .stats-section {
+        flex-direction: column !important;
+        width: 90% !important;
+        margin-top: -60px !important;
+    }
+    
+    .info-section {
+        padding: 3rem 1.5rem !important;
+    }
+    
+    .info-section h2 {
+        font-size: 2rem !important;
+    }
+    
+    .booking-steps {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .faq-container {
+        margin: 0 1rem !important;
+    }
+    
+    .map-feature-container {
+        flex-direction: column !important;
+        padding: 2rem 1.5rem !important;
+    }
+    
+    .map-embed-container {
+        height: 400px !important;
+    }
+}
 
-    /* Body margin ikut berubah */
+/* === DESKTOP (> 768px) - RESTORE ORIGINAL === */
+@media screen and (min-width: 769px) {
+    /* Body margin untuk sidebar */
     body {
-        margin-left: 250px !important;
+        margin-left: 250px;
+        transition: margin-left 0.4s ease;
     }
+    
     body.sidebar-hidden {
         margin-left: 0 !important;
     }
-
-    /* Show button hanya muncul ketika hidden */
-    .sidebar-show-btn {
-        display: none !important;
+    
+    /* Navbar desktop - original style */
+    .navbar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 250px;
+        height: 100vh;
+        transition: left 0.4s ease;
+        z-index: 1000;
     }
-    .sidebar-show-btn.active {
+    
+    .navbar.hidden {
+        left: -250px;
+    }
+    
+    /* Sidebar header desktop */
+    .sidebar-header {
+        padding: 2rem 1rem;
+        margin-bottom: 1.5rem;
+        min-height: 100px;
+    }
+    
+    .navbar-logo {
+        width: 85%;
+        max-width: 220px;
+    }
+    
+    /* Tombol toggle desktop - tanda panah */
+    .sidebar-toggle {
+        position: fixed !important;
+        top: 50% !important;
+        left: 235px !important;
+        transform: translateY(-50%) !important;
+        background: var(--leaf-green) !important;
+        border: none !important;
+        color: white !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        z-index: 1001 !important;
         display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
     }
-
-    /* Overlay tidak dipakai di desktop */
+    
+    .sidebar-toggle:hover {
+        background: var(--leaf-dark) !important;
+        transform: translateY(-50%) scale(1.1) !important;
+    }
+    
+    /* Hide tombol toggle saat navbar tertutup */
+    .navbar.hidden .sidebar-toggle {
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Tombol show desktop */
+    .sidebar-show-btn {
+        position: fixed !important;
+        top: 50% !important;
+        left: -50px !important;
+        transform: translateY(-50%) !important;
+        background: var(--leaf-green) !important;
+        color: white !important;
+        border: none !important;
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 0 8px 8px 0 !important;
+        cursor: pointer !important;
+        z-index: 999 !important;
+        transition: all 0.3s ease !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    .sidebar-show-btn.active {
+        left: 0 !important;
+        opacity: 1 !important;
+        pointer-events: all !important;
+    }
+    
+    .sidebar-show-btn:hover {
+        background: var(--leaf-dark) !important;
+    }
+    
+    /* Hide overlay di desktop */
     .navbar-overlay {
         display: none !important;
     }
 }
 
+/* Prevent horizontal scroll */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+/* ============================================================ */
+/* === IMPROVEMENT TOMBOL LOGIN - MOBILE & DESKTOP === */
+/* ============================================================ */
 
-/* ====================================
-   TABLET & MOBILE MODE (max-width: 768px)
-   ==================================== */
-
+/* === MOBILE === */
 @media screen and (max-width: 768px) {
-    /* IMPORTANT: Override semua margin dan padding untuk mobile */
-    html {
-        overflow-x: hidden;
-        width: 100%;
-    }
-    
-    body {
-        margin: 0 !important;
-        padding: 0 !important;
-        margin-left: 0 !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
-        overflow-x: hidden !important;
-        position: relative !important;
-    }
-    
-    /* Main content area full width di mobile - SELALU */
-    main,
-    .main-content,
-    .content-page,
-    .page-container,
-    header,
-    footer,
-    section,
-    .hero,
-    .info-section,
-    body > *:not(.navbar):not(.navbar-overlay):not(.sidebar-show-btn) {
-        width: 100% !important;
-        max-width: 100vw !important;
-        margin-left: 0 !important;
-        padding-left: 15px !important;
-        padding-right: 15px !important;
-        box-sizing: border-box !important;
-        position: relative !important;
-        left: 0 !important;
-        right: 0 !important;
-    }
-    
-    /* Navbar styling untuk mobile */
-    .navbar {
-        width: 75%;
-        max-width: 300px;
-        transform: translateX(-100%);
-        z-index: 1000;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-        position: fixed;
-        left: 0;
-        top: 0;
-    }
-    
-    /* Navbar visible saat TIDAK ada class hidden */
-    .navbar:not(.hidden) {
-        transform: translateX(0);
-    }
-    
-    /* Pastikan semua menu item visible */
-    .nav-menu {
-        display: flex !important;
-        flex-direction: column;
-        padding: 15px 0;
-    }
-    
-    .nav-menu li {
-        display: block !important;
-        width: 100%;
-    }
-    
-    .nav-menu li a {
-        display: flex !important;
-        width: 100%;
-        padding: 12px 20px;
-        font-size: 14px;
-    }
-    
-    .nav-menu li a i {
-        display: inline-block !important;
-    }
-    
-    /* Sembunyikan toggle button di navbar untuk mobile */
-    .sidebar-toggle {
-        display: none !important;
-    }
-    
-    /* Show button muncul saat navbar tertutup */
-    .sidebar-show-btn {
-        display: none;
-        position: fixed;
-        left: 10px;
-        top: 10px;
-        z-index: 999;
-    }
-    
-    .sidebar-show-btn.active {
-        display: flex !important;
-    }
-    
-    /* Hide show button saat navbar terbuka */
-    body.sidebar-open .sidebar-show-btn {
-        display: none !important;
-    }
-    
-    /* Prevent body scroll when sidebar is open - TANPA MENGGESER KONTEN */
-    body.sidebar-open,
-    body.no-scroll {
-        overflow: hidden !important;
-    }
-    
-    /* CRITICAL: Body TIDAK boleh fixed position atau bergeser */
-    body.sidebar-open,
-    body.no-scroll {
-        position: relative !important;
-        margin-left: 0 !important;
-        left: 0 !important;
-    }
-}
-
-/* ====================================
-   SMALL TABLET (max-width: 640px)
-   ==================================== */
-
-@media screen and (max-width: 640px) {
-    /* Pastikan content full width */
-    body {
-        width: 100vw !important;
-    }
-    
-    main,
-    .main-content,
-    .content-page,
-    .page-container,
-    .hero,
-    section {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin-left: 0 !important;
-    }
-    
-    .navbar {
-        width: 75%;
-        max-width: 280px;
-    }
-    
-    .sidebar-header {
-        padding: 12px;
-    }
-    
-    .navbar-logo {
-        max-width: 130px;
-    }
-    
-    .nav-menu {
-        padding: 12px 0;
-    }
-    
-    .nav-menu li a {
-        padding: 11px 18px;
-        font-size: 13px;
-    }
-    
-    .nav-menu li a:hover {
-        padding-left: 23px;
-    }
-    
+    /* Spacing sebelum tombol login */
     .login-btn {
-        padding: 9px 15px !important;
-        margin: 8px 12px !important;
-        font-size: 13px;
-        width: calc(100% - 24px) !important;
+        margin-top: 1.5rem !important;
+        padding: 1rem 2rem !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
     }
     
-    .user-greeting {
-        padding: 9px 15px;
-        margin: 8px 12px;
-        font-size: 12px;
+    /* Efek saat tombol diklik/tap */
+    .login-btn:active {
+        transform: scale(0.97) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
     }
     
-    .sidebar-show-btn {
-        width: 45px;
-        height: 45px;
-        font-size: 18px;
+    /* Icon login lebih besar */
+    .login-btn i {
+        font-size: 1.2rem !important;
+        margin-right: 0.5rem !important;
     }
 }
 
-/* ====================================
-   MOBILE (max-width: 480px)
-   ==================================== */
-
-@media screen and (max-width: 480px) {
-    .navbar {
-        width: 75%;
-        max-width: 260px;
-    }
-    
-    .sidebar-header {
-        padding: 10px;
-    }
-    
-    .navbar-logo {
-        max-width: 110px;
-    }
-    
-    .nav-menu {
-        padding: 10px 0;
-    }
-    
-    .nav-menu li a {
-        padding: 10px 15px;
-        font-size: 13px;
-        gap: 8px;
-    }
-    
-    .nav-menu li a i {
-        font-size: 15px;
-    }
-    
-    .nav-menu li a:hover {
-        padding-left: 18px;
-    }
-    
+/* === DESKTOP === */
+@media screen and (min-width: 769px) {
     .login-btn {
-        padding: 8px 12px !important;
-        margin: 6px 10px !important;
-        font-size: 12px;
-        width: calc(100% - 20px) !important;
+        padding: 0.8rem 1.5rem !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+        margin-top: 1rem !important;
     }
     
-    .user-greeting {
-        padding: 8px 12px;
-        margin: 6px 10px;
-        font-size: 11px;
+    /* Hover effect desktop */
+    .login-btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
     }
     
-    .sidebar-show-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 17px;
-        left: 10px;
-        top: 10px;
+    /* Icon login */
+    .login-btn i {
+        font-size: 1.1rem !important;
+        margin-right: 0.5rem !important;
     }
 }
 
-/* ====================================
-   VERY SMALL MOBILE (max-width: 360px)
-   ==================================== */
-
-@media screen and (max-width: 360px) {
-    .navbar {
-        width: 80%;
-        max-width: 240px;
-    }
-    
-    .navbar-logo {
-        max-width: 100px;
-    }
-    
-    .nav-menu li a {
-        padding: 9px 12px;
-        font-size: 12px;
-    }
-    
-    .sidebar-show-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-}
-
-/* ====================================
-   UTILITY CLASSES
-   ==================================== */
-
-html {
-    overflow-x: hidden;
-    width: 100%;
-}
-
-/* Override untuk mobile - pastikan tidak ada space kosong */
-@media screen and (max-width: 768px) {
-    * {
-        box-sizing: border-box;
-    }
-    
-    html, body {
-        overflow-x: hidden !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    
-    /* Pastikan semua container tidak overflow */
-    body > * {
-        max-width: 100vw;
-    }
-}
+/* 

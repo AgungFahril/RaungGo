@@ -82,88 +82,275 @@ body {
     font-family: 'Poppins', sans-serif;
     background: #f5faf5 url('images/Gunung_Raung.jpg') no-repeat center top;
     background-size: cover;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
 }
+
 .status-table-container {
-    max-width: 900px;
-    margin: 140px auto;
+    max-width: 1100px;
+    margin: 130px auto 40px;
     padding: 2.5rem;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    background-color: rgba(255, 255, 255, 0.98);
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
 }
+
 .status-table-container h2 {
     text-align: center;
     margin-bottom: 2rem;
     color: #2e7d32;
+    font-weight: 700;
+    font-size: 28px;
 }
+
 form {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
 }
+
 input[type="text"] {
-    padding: 10px;
+    padding: 12px 15px;
     width: 60%;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+    max-width: 400px;
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    font-size: 15px;
+    transition: border 0.3s ease;
 }
+
+input[type="text"]:focus {
+    border-color: #43a047;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.1);
+}
+
 button {
-    background: #43a047;
+    background: linear-gradient(135deg, #43a047, #2e7d32);
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
+    padding: 12px 24px;
+    border-radius: 8px;
     margin-left: 10px;
     cursor: pointer;
     font-weight: 600;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(67, 160, 71, 0.3);
+    transition: all 0.3s ease;
 }
-button:hover { background: #2e7d32; }
+
+button:hover { 
+    background: linear-gradient(135deg, #2e7d32, #1b5e20);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(67, 160, 71, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* Table wrapper untuk scroll horizontal */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 1.5rem;
+    border-radius: 8px;
+}
 
 .status-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1.5rem;
+    min-width: 900px;
 }
+
 .status-table th, .status-table td {
-    border: 1px solid #ddd;
-    padding: 0.8rem 1rem;
+    border: 1px solid #e0e0e0;
+    padding: 12px 16px;
     text-align: left;
-    font-size: 0.95rem;
+    font-size: 14px;
+    white-space: nowrap;
 }
+
 .status-table th {
     background-color: #f8f8f8;
     font-weight: 600;
+    color: #2e7d32;
 }
+
+.status-table tbody tr:hover {
+    background-color: #f9fdf9;
+}
+
 .status-badge {
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
     color: #fff;
+    display: inline-block;
+    white-space: nowrap;
 }
+
 .status-menunggu_pembayaran { background-color: #f39c12; } 
 .status-menunggu_konfirmasi { background-color: #3498db; }
 .status-berhasil, .status-lunas { background-color: #2ecc71; } 
-.status-gagal, .status-ditolak, .status-batal { background-color: #e74c3c; } 
+.status-gagal, .status-ditolak, .status-batal { background-color: #e74c3c; }
+
 .no-booking {
     text-align: center;
     color: #777;
     margin-top: 2rem;
+    font-size: 16px;
 }
+
 .btn-aksi {
     display: inline-block;
     background: #43a047;
     color: white;
-    padding: 6px 12px;
+    padding: 8px 14px;
     border-radius: 6px;
     text-decoration: none;
     font-weight: 600;
+    font-size: 13px;
+    margin: 2px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
 }
-.btn-aksi:hover { background: #2e7d32; }
+
+.btn-aksi:hover { 
+    background: #2e7d32;
+    transform: translateY(-1px);
+}
+
 .btn-bayar {
     background: #e91e63;
 }
-.btn-bayar:hover { background: #ad1457; }
+
+.btn-bayar:hover { 
+    background: #ad1457;
+}
+
+.scroll-hint {
+    display: none;
+    text-align: center;
+    color: #e91e63;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: #fff3e0;
+    border-radius: 6px;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #555;
+    font-size: 14px;
+}
+
+/* === RESPONSIVE MOBILE === */
+@media screen and (max-width: 768px) {
+    .status-table-container {
+        width: 95%;
+        margin: 90px auto 25px;
+        padding: 20px 15px;
+        border-radius: 10px;
+    }
+    
+    .status-table-container h2 {
+        font-size: 20px;
+        margin-bottom: 1.5rem;
+    }
+    
+    form {
+        margin-bottom: 20px;
+    }
+    
+    input[type="text"] {
+        width: 100%;
+        max-width: 100%;
+        padding: 12px;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    button {
+        width: 100%;
+        margin-left: 0;
+        padding: 12px 20px;
+    }
+    
+    /* Scroll hint muncul di mobile */
+    .scroll-hint {
+        display: block;
+    }
+    
+    /* Table wrapper dengan scroll */
+    .table-wrapper {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        -webkit-overflow-scrolling: touch !important;
+        border: 2px solid #e8f5e9;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .status-table {
+        min-width: 900px !important;
+        font-size: 13px;
+    }
+    
+    .status-table th, .status-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .status-badge {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+    
+    .btn-aksi {
+        padding: 7px 12px;
+        font-size: 12px;
+        display: inline-block;
+        margin: 2px;
+    }
+    
+    .no-booking {
+        font-size: 14px;
+        padding: 0 15px;
+    }
+    
+    footer {
+        font-size: 13px;
+        padding: 18px 15px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .status-table-container {
+        width: 98%;
+        padding: 18px 12px;
+    }
+    
+    .status-table-container h2 {
+        font-size: 18px;
+    }
+    
+    .status-table {
+        min-width: 850px !important;
+        font-size: 12px;
+    }
+    
+    .status-table th, .status-table td {
+        padding: 8px 10px;
+    }
+}
 </style>
+
 </head>
 <body>
 
@@ -209,7 +396,9 @@ button:hover { background: #2e7d32; }
     <?php endif; ?>
 
     <?php if (!empty($bookings)): ?>
+    <div class="table-wrapper">
         <table class="status-table">
+
             <thead>
                 <tr>
                     <th>Kode Token</th>
@@ -263,6 +452,9 @@ button:hover { background: #2e7d32; }
                 <?php endforeach; ?>
             </tbody>
         </table>
+            </table>
+    </div> <!-- penutup table-wrapper -->
+
     <?php elseif (!isset($_POST['cek_token'])): ?>
         <p class="no-booking">Masukkan kode token booking untuk melihat status pendakian kamu.</p>
     <?php endif; ?>

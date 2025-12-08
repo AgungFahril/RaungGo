@@ -95,8 +95,9 @@ body{font-family:'Poppins',sans-serif;background:#f3f6f3 url('../images/Gunung_R
 .booking-wrapper{max-width:980px;margin:90px auto;background:rgba(255,255,255,0.98);border-radius:12px;padding:24px 26px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
 .info-card{background:#e8f5e9;border-left:6px solid #43a047;border-radius:10px;padding:14px 18px;margin-bottom:18px}
 fieldset{border:1px solid #c8e6c9;border-radius:10px;padding:14px;margin-bottom:14px;background:#fbfff9}
+legend{font-weight:700;color:#2e7d32}
 label{font-weight:600;margin-top:8px;display:block}
-input,select,textarea{width:100%;padding:9px;border-radius:6px;border:1px solid #ccc}
+input,select,textarea{width:100%;padding:9px;border-radius:6px;border:1px solid #ccc;box-sizing:border-box}
 .btn-submit{width:100%;background:#43a047;color:#fff;border:none;border-radius:8px;padding:12px;font-weight:700;cursor:pointer}
 .small{font-size:.9rem;color:#666}
 .breakdown{background:#fff;border-radius:8px;padding:12px;border:1px solid #eee;margin-top:12px}
@@ -109,7 +110,179 @@ input,select,textarea{width:100%;padding:9px;border-radius:6px;border:1px solid 
 .kembali{display:inline-block;margin-bottom:12px;background:#9e9e9e;color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none}
 .kembali:hover{background:#7e7e7e}
 .card{background:#fff;border-radius:8px;border:1px solid #eee;padding:12px}
+
+/* === RESPONSIVE MOBILE === */
+@media screen and (max-width: 768px) {
+    /* Booking wrapper */
+    .booking-wrapper {
+        padding: 18px 14px !important;
+        margin: 70px auto 20px !important;
+    }
+    
+    /* Row flexbox jadi vertical */
+    .row {
+        flex-direction: column !important;
+        gap: 0 !important;
+    }
+    
+    .col {
+        width: 100% !important;
+        margin-bottom: 12px;
+    }
+    
+    /* Fieldset */
+    fieldset {
+        padding: 12px !important;
+        margin-bottom: 12px;
+    }
+    
+    legend {
+        font-size: 15px;
+    }
+    
+    /* Labels */
+    label {
+        font-size: 14px !important;
+        margin-top: 8px;
+        margin-bottom: 6px !important;
+    }
+    
+    /* Input fields */
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+        width: 100% !important;
+        padding: 12px 15px !important;
+        font-size: 14px !important;
+        border: 2px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        margin-bottom: 5px !important;
+    }
+    
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: #2e7d32 !important;
+        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1) !important;
+        outline: none !important;
+    }
+    
+    /* File upload */
+    input[type="file"] {
+        padding: 10px !important;
+        font-size: 13px !important;
+        background: #f5f5f5 !important;
+        border: 2px dashed #2e7d32 !important;
+        border-radius: 8px !important;
+    }
+    
+    input[type="file"]::file-selector-button {
+        background: #2e7d32 !important;
+        color: white !important;
+        border: none !important;
+        padding: 10px 20px !important;
+        border-radius: 6px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        margin-right: 10px !important;
+    }
+    
+    /* Anggota group - Override inline styles */
+    .anggota-group > div[style*="display:flex"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+    }
+    
+    .anggota-group > div[style*="display:flex"] > div {
+        flex: 1 !important;
+        width: 100% !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .anggota-group input,
+    .anggota-group select {
+        width: 100% !important;
+    }
+    
+    .anggota-group h4 {
+        font-size: 15px !important;
+        color: #2e7d32 !important;
+        margin-bottom: 12px;
+    }
+    
+    /* Breakdown (Rincian Harga) */
+    .breakdown {
+        background: #f9fdf9 !important;
+        border: 2px solid #e8f5e9 !important;
+        border-radius: 12px !important;
+        padding: 16px !important;
+        margin: 20px 0 !important;
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.1) !important;
+    }
+    
+    .breakdown > div {
+        flex-wrap: wrap !important;
+        font-size: 14px;
+        padding: 8px 0;
+    }
+    
+    /* Submit button */
+    .btn-submit {
+        background: linear-gradient(135deg, #2e7d32, #1b5e20) !important;
+        font-size: 16px !important;
+        padding: 16px 24px !important;
+        border-radius: 10px !important;
+        margin-top: 20px !important;
+        box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+    
+    .btn-submit:active {
+        transform: translateY(2px) !important;
+        box-shadow: 0 3px 10px rgba(46, 125, 50, 0.3) !important;
+    }
+    
+    /* Info card */
+    .info-card {
+        padding: 12px 14px !important;
+        font-size: 14px !important;
+    }
+    
+    /* Kembali button */
+    .kembali {
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+    
+    /* Helper text */
+    .small, .note {
+        font-size: 12px !important;
+    }
+}
+
+/* Small mobile */
+@media screen and (max-width: 375px) {
+    .booking-wrapper {
+        padding: 14px 10px !important;
+        margin: 60px auto 15px !important;
+    }
+    
+    input, select, textarea {
+        padding: 10px 12px !important;
+        font-size: 13px !important;
+    }
+    
+    .btn-submit {
+        padding: 14px 20px !important;
+        font-size: 15px !important;
+    }
+}
 </style>
+
 </head>
 <body>
 <header><?php include '../includes/navbar_user.php'; ?></header>
