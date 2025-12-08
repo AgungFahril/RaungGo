@@ -143,55 +143,249 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_bukti'])) {
 <link rel="stylesheet" href="../style.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
-/* TAMPILAN TIDAK DIUBAH — sama persis dengan versi Anda sebelumnya */
 body {
     font-family: 'Poppins', sans-serif;
     background: #f5faf5 url('../images/Gunung_Raung.jpg') no-repeat center top;
     background-size: cover;
     color: #333;
+    margin: 0;
+    padding: 0;
 }
+
 .container {
-    width: 85%;
-    margin: 110px auto;
+    width: 90%;
+    max-width: 750px;
+    margin: 110px auto 30px;
     background: rgba(255,255,255,0.97);
     border-radius: 14px;
-    padding: 30px 40px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    padding: 35px 45px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
 }
-h2 { text-align: center; color: #2e7d32; margin-bottom: 25px; font-weight: 700; }
+
+h2 { 
+    text-align: center; 
+    color: #2e7d32; 
+    margin-bottom: 25px; 
+    font-weight: 700;
+    font-size: 24px;
+}
+
 .rekening-box {
-    background: #fffde7;
-    border: 1px solid #fff59d;
-    border-radius: 10px;
-    padding: 15px 20px;
-    margin-bottom: 25px;
+    background: linear-gradient(135deg, #fffde7, #fff9c4);
+    border: 2px solid #f9a825;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 10px rgba(249, 168, 37, 0.15);
 }
-input, input[type=file] {
+
+.rekening-box p {
+    margin: 10px 0;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.rekening-box p:first-child {
+    margin-top: 0;
+}
+
+.rekening-box p:last-child {
+    margin-bottom: 0;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    color: #2e7d32;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    font-size: 15px;
+}
+
+input[type="text"] {
     width: 100%;
-    padding: 10px;
+    padding: 12px 15px;
     margin-top: 6px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    font-size: 15px;
+    font-weight: 600;
+    background: #f5f5f5;
+    color: #333;
+    box-sizing: border-box;
 }
-.btn {
-    background: #43a047;
+
+input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    border-radius: 8px;
+    border: 2px dashed #2e7d32;
+    background: #f9fdf9;
+    cursor: pointer;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+input[type="file"]::file-selector-button {
+    background: #2e7d32;
     color: white;
     border: none;
-    padding: 12px;
-    width: 100%;
-    border-radius: 8px;
-    margin-top: 20px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
+    margin-right: 12px;
 }
-.btn:hover { background: #2e7d32; }
+
+input[type="file"]::file-selector-button:hover {
+    background: #1b5e20;
+}
+
+.btn {
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+    color: white;
+    border: none;
+    padding: 15px 24px;
+    width: 100%;
+    border-radius: 10px;
+    margin-top: 25px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn:hover { 
+    background: linear-gradient(135deg, #2e7d32, #1b5e20);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(46, 125, 50, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+}
+
 .btn-danger {
-    background: #d32f2f !important;
+    background: linear-gradient(135deg, #e53935, #c62828) !important;
+    box-shadow: 0 6px 20px rgba(229, 57, 53, 0.3) !important;
+    margin-top: 15px;
 }
+
 .btn-danger:hover {
-    background: #b71c1c !important;
+    background: linear-gradient(135deg, #c62828, #b71c1c) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(229, 57, 53, 0.4) !important;
 }
+
+.btn-danger:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3) !important;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #555;
+    font-size: 14px;
+}
+
+/* === RESPONSIVE MOBILE === */
+/* === RESPONSIVE MOBILE === */
+@media screen and (max-width: 768px) {
+    .container {
+        width: 90% !important;
+        max-width: 500px !important;
+        margin: 80px auto 20px !important;
+        padding: 22px 20px !important;
+        border-radius: 12px;
+    }
+    
+    h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .rekening-box {
+        padding: 15px 18px;
+        margin-bottom: 18px;
+        border-radius: 10px;
+    }
+    
+    .rekening-box p {
+        font-size: 14px;
+        margin: 8px 0;
+    }
+    
+    label {
+        font-size: 14px;
+        margin-top: 15px;
+        margin-bottom: 6px;
+    }
+    
+    input[type="text"],
+    input[type="file"] {
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    input[type="file"]::file-selector-button {
+        padding: 8px 16px;
+        font-size: 13px;
+        margin-right: 8px;
+    }
+    
+    .btn {
+        padding: 14px 20px;
+        font-size: 15px;
+        margin-top: 20px;
+    }
+    
+    .btn-danger {
+        margin-top: 12px;
+    }
+    
+    footer {
+        font-size: 13px;
+        padding: 18px 15px;
+    }
+}
+
+/* Small mobile */
+@media screen and (max-width: 375px) {
+    .container {
+        width: 92% !important;
+        padding: 18px 16px !important;
+        margin: 70px auto 15px !important;
+    }
+    
+    h2 {
+        font-size: 18px;
+    }
+    
+    .rekening-box p {
+        font-size: 13px;
+    }
+    
+    input[type="text"],
+    input[type="file"] {
+        padding: 10px;
+        font-size: 13px;
+    }
+    
+    .btn {
+        padding: 12px 18px;
+        font-size: 14px;
+    }
+}
+
 </style>
+
 </head>
 <body>
 

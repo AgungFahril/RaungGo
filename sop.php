@@ -1,16 +1,121 @@
 <!DOCTYPE html>
 <html lang="id">
+<!DOCTYPE html>
+<html lang="id">
+<!DOCTYPE html>
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOP Pendakian Gunung Raung</title>
-    <link rel="stylesheet" href="../style.css">
-    <link rel="stylesheet" href="css/responsive-navbar.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="pengunjung/css/responsive-navbar.css">
+    <link rel="stylesheet" href="pengunjung/css/sop-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- TEST CSS INLINE -->
+    <style>
+@media screen and (max-width: 968px) {
+    .page-container {
+        flex-direction: column !important;
+        margin: 80px auto 30px !important;
+        padding: 0 15px !important;
+    }
+    
+    .sidebar {
+        width: 100% !important;
+        position: sticky !important;
+        top: 70px !important;
+        z-index: 100 !important;
+        padding: 15px !important;
+        margin-bottom: 20px !important;
+        background: white !important; /* Ganti dari yellow */
+    }
+    
+    .sidebar-nav {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+        padding: 0 !important;
+        list-style: none !important;
+    }
+    
+    .sidebar-nav li {
+        margin: 0 !important;
+    }
+    
+    .sidebar-nav a {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 16px 12px !important;
+        border: 2px solid #e0e0e0 !important;
+        border-radius: 10px !important;
+        gap: 8px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        background: white !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08) !important;
+        transition: all 0.3s ease !important;
+        color: #555 !important;
+        text-decoration: none !important;
+    }
+    
+    .sidebar-nav a:hover {
+        border-color: #43a047 !important;
+        background: #f9fdf9 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 10px rgba(67, 160, 71, 0.2) !important;
+    }
+    
+    .sidebar-nav li.active a {
+        background: linear-gradient(135deg, #43a047, #2e7d32) !important;
+        color: white !important;
+        border-color: #2e7d32 !important;
+        box-shadow: 0 4px 12px rgba(67, 160, 71, 0.4) !important;
+    }
+    
+    .sidebar-nav i {
+        font-size: 24px !important;
+        margin-bottom: 4px !important;
+    }
+    
+    .btn-back {
+        display: block !important;
+        width: 100% !important;
+        padding: 12px 20px !important;
+        margin-top: 12px !important;
+        background: linear-gradient(135deg, #e53935, #c62828) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        text-align: center !important;
+        text-decoration: none !important;
+        box-shadow: 0 4px 12px rgba(229, 57, 53, 0.3) !important;
+    }
+    
+    .main-content {
+        padding: 25px 20px !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .sidebar-nav {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
 </head>
+
+
 <body>
     <header>
      <?php include 'includes/navbar_user.php'; ?>
@@ -18,14 +123,16 @@
 
     <div class="page-container">
         <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li class="active"><a href="#ketentuan-umum"><i class="fa-solid fa-file-lines"></i> Ketentuan Umum</a></li>
-                <li><a href="#tarif"><i class="fa-solid fa-tags"></i> Tarif</a></li>
-                <li><a href="#pelaksanaan"><i class="fa-solid fa-person-hiking"></i> Pelaksanaan</a></li>
-                <li><a href="#larangan"><i class="fa-solid fa-ban"></i> Larangan</a></li>
-                <li><a href="#booking"><i class="fa-solid fa-calendar-check"></i> Booking</a></li>
-            </ul>
-        </aside>
+    <ul class="sidebar-nav">
+        <li class="active"><a href="#ketentuan-umum"><i class="fa-solid fa-file-lines"></i> Ketentuan Umum</a></li>
+        <li><a href="#tarif"><i class="fa-solid fa-tags"></i> Tarif</a></li>
+        <li><a href="#pelaksanaan"><i class="fa-solid fa-person-hiking"></i> Pelaksanaan</a></li>
+        <li><a href="#larangan"><i class="fa-solid fa-ban"></i> Larangan</a></li>
+        <li><a href="#booking"><i class="fa-solid fa-calendar-check"></i> Booking</a></li>
+    </ul>
+    <a href="dashboard.php" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Kembali</a>
+</aside>
+
 
         <main class="main-content">
             <section id="ketentuan-umum" class="content-block">

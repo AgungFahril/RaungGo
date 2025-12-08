@@ -103,7 +103,7 @@ body{background:linear-gradient(135deg,#f5faf5,#e8f5e9);overflow-x:hidden;animat
 .stat-icon{font-size:38px;margin-bottom:12px;color:#3b82f6}
 .stat-number{font-size:36px;font-weight:700;color:#2e7d32}
 .stat-label{color:#666;font-weight:500;margin-bottom:8px}
-.stat-link{color:#2e7d32;text-decoration:none;font-weight:600;font-size:13px;transition:.3s}
+.stat-link{color:#2e7d32;text-decoration:none;font-weight:600;font-size:13px;transition:.3s;display:inline-block}
 .stat-link:hover{color:#1b5e20;transform:translateX(5px)}
 
 .content-section{background:#fff;border-radius:14px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.08);border-left:6px solid #2e7d32}
@@ -136,23 +136,162 @@ body{background:linear-gradient(135deg,#f5faf5,#e8f5e9);overflow-x:hidden;animat
 .profile-modal-btn-edit{background:#f5faf5;color:#2e7d32;border:2px solid #e8f5e9}
 .profile-modal-btn-edit:hover{background:#e8f5e9}
 
-@media(max-width:900px){
-    .sidebar{position:relative;width:100%;height:auto;flex-direction:row;padding:15px;gap:15px}
-    .sidebar > div:first-child{display:flex;gap:15px;width:100%}
-    .sidebar-header{padding:0;border-bottom:none}
-    .sidebar-nav{gap:0;flex-direction:row;flex-wrap:wrap}
-    .nav-item{padding:10px 15px;font-size:14px}
-    .main-content{margin-left:0;padding:25px}
-    .stats-grid{grid-template-columns:1fr;gap:20px}
+/* HAMBURGER & OVERLAY - SEMBUNYIKAN DI DESKTOP */
+.mobile-menu-btn,
+.sidebar-overlay{
+    display:none;
+}
+
+/* === TABLET === */
+@media(max-width:900px) and (min-width:769px){
+    .sidebar{width:220px}
+    .main-content{margin-left:220px;padding:35px}
+    .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* === MOBILE === */
+@media(max-width:768px){
+    .dashboard-container{flex-direction:column}
+    
+    /* Sidebar Mobile */
+    .sidebar{
+        position:fixed;
+        top:0;
+        left:-100%;
+        width:280px;
+        max-width:85vw;
+        height:100vh;
+        z-index:9999;
+        transition:left 0.4s ease;
+        padding:20px 0;
+        overflow-y:auto;
+    }
+    
+    .sidebar.show{left:0}
+    
+    .sidebar-header{
+        padding:0 20px 20px;
+        border-bottom:1px solid rgba(255,255,255,0.1);
+    }
+    
+    .user-avatar{width:60px;height:60px;font-size:24px}
+    
+    .sidebar-nav{margin-top:15px;gap:5px}
+    
+    .nav-item{padding:12px 20px;font-size:14px}
+    
+    .sidebar-actions{gap:8px;padding:15px 0}
+    
+    /* Main Content */
+    .main-content{
+        margin-left:0;
+        padding:80px 20px 30px 20px;
+        width:100%;
+    }
+    
+    /* Top Bar */
+    .top-bar{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+        padding-bottom:15px;
+        margin-bottom:25px;
+    }
+    
+    .top-bar h1{font-size:22px}
+    .top-bar p{font-size:13px}
+    
+    /* HAMBURGER BUTTON - TAMPIL DI MOBILE */
+    .mobile-menu-btn{
+        display:flex;
+        position:fixed;
+        top:15px;
+        left:15px;
+        width:50px;
+        height:50px;
+        background:#2e7d32;
+        color:#fff;
+        border:none;
+        border-radius:12px;
+        font-size:20px;
+        cursor:pointer;
+        z-index:9998;
+        align-items:center;
+        justify-content:center;
+        box-shadow:0 4px 12px rgba(0,0,0,0.3);
+        transition:all 0.3s;
+    }
+    
+    .mobile-menu-btn:active{transform:scale(0.95)}
+    
+    /* Overlay */
+    .sidebar-overlay{
+        display:none;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100vw;
+        height:100vh;
+        background:rgba(0,0,0,0.6);
+        z-index:9998;
+    }
+    
+    .sidebar-overlay.show{display:block}
+    
+    /* Stats Grid */
+    .stats-grid{
+        grid-template-columns:1fr;
+        gap:15px;
+        margin-bottom:30px;
+    }
+    
+    .stat-card{padding:20px}
+    .stat-icon{font-size:32px}
+    .stat-number{font-size:28px}
+    .stat-label{font-size:13px}
+    
+    /* Content Section */
+    .content-section{padding:20px}
+    .content-section h2{font-size:18px}
+    .content-section p{font-size:14px}
+    
+    /* Profile Modal */
+    .profile-modal-content{width:95%;max-width:380px}
+    .profile-modal-header{padding:20px}
+    .profile-modal-title{font-size:18px}
+    .profile-modal-body{padding:20px}
+    .profile-modal-photo{width:100px;height:100px;font-size:42px}
+    .profile-modal-name{font-size:20px}
+    .profile-modal-info{grid-template-columns:1fr}
+    .profile-modal-actions{flex-direction:column}
+    .profile-modal-btn{padding:12px}
+}
+
+/* === SMALL MOBILE === */
+@media(max-width:375px){
+    .main-content{padding:70px 15px 25px 15px}
+    .stat-card{padding:18px}
+    .stat-number{font-size:24px}
+    .content-section{padding:18px}
 }
 </style>
 </head>
 <body>
+
+<!-- Tombol Mobile Menu -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileSidebar()">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<!-- Dashboard Container -->
 <div class="dashboard-container">
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="mobileSidebar">
         <div>
-            <div class="sidebar-header" onclick="openProfileModal();" style="cursor:pointer;">
+            <div class="sidebar-header" onclick="openProfileModal();">
                 <div class="user-avatar">
                     <?php if (!empty($foto_profil) && file_exists("../uploads/profil/$foto_profil")): ?>
                         <img src="../uploads/profil/<?php echo htmlspecialchars($foto_profil); ?>" alt="Profil">
@@ -239,21 +378,17 @@ body{background:linear-gradient(135deg,#f5faf5,#e8f5e9);overflow-x:hidden;animat
             <button class="profile-modal-close" onclick="closeProfileModal()">&times;</button>
         </div>
         <div class="profile-modal-body">
-            <!-- Foto Profil -->
             <div class="profile-modal-photo" id="modalPhotoContainer">
                 <?php echo strtoupper(substr($profile_data['nama'] ?? '', 0, 1)); ?>
             </div>
 
-            <!-- Nama -->
             <div class="profile-modal-name"><?php echo htmlspecialchars($profile_data['nama'] ?? ''); ?></div>
 
-            <!-- Kontak -->
             <div class="profile-modal-contact">
                 <div class="profile-modal-contact-item email"><?php echo htmlspecialchars($profile_data['email'] ?? '-'); ?></div>
                 <div class="profile-modal-contact-item phone"><?php echo htmlspecialchars($profile_data['no_hp'] ?? '-'); ?></div>
             </div>
 
-            <!-- Informasi Grid -->
             <div class="profile-modal-info">
                 <?php if (!empty($profile_data['nik'])): ?>
                 <div class="profile-modal-info-item">
@@ -305,7 +440,6 @@ body{background:linear-gradient(135deg,#f5faf5,#e8f5e9);overflow-x:hidden;animat
                 <?php endif; ?>
             </div>
 
-            <!-- Action Buttons -->
             <div class="profile-modal-actions">
                 <button class="profile-modal-btn profile-modal-btn-detail" onclick="goToDetailProfile()">👁 Lihat Detail</button>
                 <button class="profile-modal-btn profile-modal-btn-edit" onclick="goToEditProfile()">✏️ Edit</button>
@@ -344,6 +478,58 @@ function goToEditProfile() {
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeProfileModal();
+});
+
+// Mobile Sidebar Functions
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('mobileSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const btn = document.getElementById('mobileMenuBtn');
+    
+    if (!sidebar || !overlay || !btn) return;
+    
+    sidebar.classList.toggle('show');
+    overlay.classList.toggle('show');
+    
+    const icon = btn.querySelector('i');
+    if (sidebar.classList.contains('show')) {
+        icon.classList.remove('fa-bars');
+        icon.classList.add('fa-times');
+        document.body.style.overflow = 'hidden';
+    } else {
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-bars');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('mobileSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const btn = document.getElementById('mobileMenuBtn');
+    
+    if (sidebar) sidebar.classList.remove('show');
+    if (overlay) overlay.classList.remove('show');
+    if (btn) {
+        const icon = btn.querySelector('i');
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-bars');
+    }
+    document.body.style.overflow = 'auto';
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+        if (window.innerWidth <= 768) {
+            setTimeout(closeMobileSidebar, 200);
+        }
+    });
+});
+
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+        closeMobileSidebar();
+    }
 });
 </script>
 

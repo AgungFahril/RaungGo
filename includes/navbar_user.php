@@ -46,6 +46,7 @@ $namaUser = $_SESSION['nama'] ?? 'Pendaki';
         </a>
     </div>
     
+        <!-- menu items... -->
     <!-- Toggle Button for Desktop -->
     <button class="sidebar-toggle" onclick="toggleSidebar()" title="Sembunyikan Menu">
         <span>◄</span>
@@ -127,83 +128,109 @@ function toggleSidebar() {
     const overlay = document.querySelector('.navbar-overlay');
     const body = document.body;
     const showBtn = document.querySelector('.sidebar-show-btn');
-    const isMobile = window.innerWidth <= 768;
+    const isDesktop = window.innerWidth > 768;
     
     if (!navbar) return;
     
-    navbar.classList.toggle('hidden');
+    const isHidden = navbar.classList.contains('hidden');
     
-    if (isMobile) {
-        if (overlay) {
-            overlay.classList.toggle('active');
+    if (isHidden) {
+        // Buka sidebar
+        navbar.classList.remove('hidden');
+        
+        if (isDesktop) {
+            // Desktop: hapus class sidebar-hidden dari body
+            body.classList.remove('sidebar-hidden');
+        } else {
+            // Mobile: tambah overlay dan no-scroll
+            if (overlay) overlay.classList.add('active');
+            body.classList.add('sidebar-open');
+            body.classList.add('no-scroll');
         }
         
-        if (body) {
-            body.classList.toggle('sidebar-open');
-            body.classList.toggle('no-scroll');
-        }
-        
-        if (showBtn) {
-            showBtn.classList.toggle('active');
-        }
+        if (showBtn) showBtn.classList.remove('active');
     } else {
-        if (body) {
-            body.classList.toggle('sidebar-hidden');
+        // Tutup sidebar
+        navbar.classList.add('hidden');
+        
+        if (isDesktop) {
+            // Desktop: tambah class sidebar-hidden ke body
+            body.classList.add('sidebar-hidden');
+        } else {
+            // Mobile: hapus overlay dan no-scroll
+            if (overlay) overlay.classList.remove('active');
+            body.classList.remove('sidebar-open');
+            body.classList.remove('no-scroll');
         }
         
-        if (showBtn) {
-            showBtn.classList.toggle('active');
-        }
+        if (showBtn) showBtn.classList.add('active');
     }
 }
+
 
 function closeSidebar() {
     const navbar = document.querySelector('nav.navbar');
     const overlay = document.querySelector('.navbar-overlay');
     const body = document.body;
     const showBtn = document.querySelector('.sidebar-show-btn');
+    const isDesktop = window.innerWidth > 768;
     
-    if (navbar) {
-        navbar.classList.add('hidden');
-    }
+    if (navbar) navbar.classList.add('hidden');
+    if (showBtn) showBtn.classList.add('active');
     
-    if (overlay) {
-        overlay.classList.remove('active');
-    }
-    
-    if (body) {
+    if (isDesktop) {
+        // Desktop
+        body.classList.add('sidebar-hidden');
+    } else {
+        // Mobile
+        if (overlay) overlay.classList.remove('active');
         body.classList.remove('sidebar-open');
         body.classList.remove('no-scroll');
-    }
-    
-    if (showBtn) {
-        showBtn.classList.add('active');
     }
 }
 
-function closeSidebar() {
-    const navbar = document.querySelector('nav.navbar');
+
+
+// Event listener untuk overlay
+document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.querySelector('.navbar-overlay');
-    const body = document.body;
+    const menuLinks = document.querySelectorAll('.nav-menu a');
+    const navbar = document.querySelector('nav.navbar');
     const showBtn = document.querySelector('.sidebar-show-btn');
     
-    if (navbar) {
-        navbar.classList.add('hidden');
-    }
-    
+    // Klik overlay untuk tutup
     if (overlay) {
-        overlay.classList.remove('active');
+        overlay.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeSidebar();
+        });
+        
+        // Touch event untuk mobile
+        overlay.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeSidebar();
+        });
     }
     
-    if (body) {
-        body.classList.remove('sidebar-open');
-        body.classList.remove('no-scroll');
-    }
+    // Klik menu item untuk tutup sidebar (mobile only)
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                setTimeout(() => {
+                    closeSidebar();
+                }, 100);
+            }
+        });
+    });
     
-    if (showBtn) {
-        showBtn.classList.add('active');
+    // Initialize - Di mobile, sidebar default hidden
+    if (window.innerWidth <= 768) {
+        if (navbar) navbar.classList.add('hidden');
+        if (showBtn) showBtn.classList.add('active');
     }
-}
+});
 
 // Handle window resize
 let resizeTimer;
@@ -216,72 +243,25 @@ window.addEventListener('resize', function() {
         const body = document.body;
         const showBtn = document.querySelector('.sidebar-show-btn');
         
-        // Clear semua state saat resize
-        if (overlay) {
-            overlay.classList.remove('active');
-        }
+        // Clear semua state
+        if (overlay) overlay.classList.remove('active');
         if (body) {
             body.classList.remove('sidebar-open');
             body.classList.remove('no-scroll');
             body.classList.remove('sidebar-hidden');
-            // Reset inline styles
-            body.style.marginLeft = '';
-            body.style.paddingLeft = '';
-            body.style.left = '';
-            body.style.transform = '';
-            body.style.position = '';
         }
         
         if (isMobile) {
-            // Di mobile, cek apakah sidebar sedang terbuka
-            const isOpen = navbar && !navbar.classList.contains('hidden');
-            
-            if (isOpen) {
-                // Jika terbuka, show overlay dan hide button
-                if (overlay) overlay.classList.add('active');
-                if (body) {
-                    body.classList.add('sidebar-open');
-                    body.classList.add('no-scroll');
-                }
-                if (showBtn) showBtn.classList.remove('active');
-            } else {
-                // Jika tertutup, show button
+            if (navbar && navbar.classList.contains('hidden')) {
                 if (showBtn) showBtn.classList.add('active');
             }
         } else {
-            // Di desktop, remove show button
             if (showBtn) showBtn.classList.remove('active');
         }
     }, 250);
 });
-
-// Close sidebar when clicking on menu item (mobile only)
-document.addEventListener('DOMContentLoaded', function() {
-    const menuLinks = document.querySelectorAll('.nav-menu a');
-    const body = document.body;
-    
-    menuLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                closeSidebar();
-            }
-        });
-    });
-    
-    // Initialize - Di mobile, sidebar default hidden
-    if (window.innerWidth <= 768) {
-        const navbar = document.querySelector('nav.navbar');
-        const showBtn = document.querySelector('.sidebar-show-btn');
-        
-        if (navbar) {
-            navbar.classList.add('hidden');
-        }
-        if (showBtn) {
-            showBtn.classList.add('active');
-        }
-    }
-});
 </script>
+
 
 <?php if (!empty($pesan) && $currentPage === 'index.php'): ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
