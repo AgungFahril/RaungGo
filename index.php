@@ -173,9 +173,8 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
 
 <script src="script.js"></script>
 
-<footer>
-    <p>&copy; 2025 Gunung Raung. All Rights Reserved.</p>
-</footer>
+<?php include 'includes/footer.php'; ?>
+
 
 </body>
 </html>

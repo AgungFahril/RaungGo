@@ -201,9 +201,8 @@ $nama_pengguna = htmlspecialchars($_SESSION['nama'] ?? 'Pendaki');
     </main>
 </div>
 
-<footer>
-    <p>&copy; 2025 Tahura Raden Soerjo. All Rights Reserved.</p>
-</footer>
+<?php include 'includes/footer.php'; ?>
+
 
 <script>
 // 🌿 Enable tombol setelah centang
