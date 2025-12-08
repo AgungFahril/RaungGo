@@ -233,7 +233,8 @@ footer {text-align:center;color:#555;margin:40px 0}
     <div id="resultArea"></div>
 </div>
 
-<footer>&copy; 2025 Tahura Raden Soerjo. All Rights Reserved.</footer>
+<?php include 'includes/footer.php'; ?>
+
 
 <script>
 (function(){

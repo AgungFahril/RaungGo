@@ -243,9 +243,8 @@
         </main>
     </div>
 
-    <footer>
-        <p>&copy; 2025 Tahura Raden Soerjo. All Rights Reserved.</p>
-    </footer>
+   <?php include 'includes/footer.php'; ?>
+
     <script src="script.js"></script>
 </body>
 </html>
