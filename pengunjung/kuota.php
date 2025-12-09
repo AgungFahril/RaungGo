@@ -233,7 +233,12 @@ footer {text-align:center;color:#555;margin:40px 0}
     <div id="resultArea"></div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php 
+$footerPath = '../includes/footer.php';
+if (file_exists($footerPath)) {
+    include $footerPath; 
+}
+?>
 
 
 <script>
